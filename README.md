@@ -1,3 +1,3 @@
-TODO REPLACE WITH REPO NAME
+NEAR LAMBDA TYPESCRIPT
 ===========================
-TODO replace with repo description
+Near Lambda Typescript
