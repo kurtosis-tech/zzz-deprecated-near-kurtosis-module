@@ -1,0 +1,22 @@
+{
+    "scripts": {
+        "build": "ts-mocha -p tsconfig.json 'kurtosis-lambda/test/**/*.ts' && tsc"
+    },
+    "files": [
+        "build"
+    ],
+    "dependencies": {
+        "grpc": "^1.24.11",
+        "kurtosis-lambda-api-lib": "0.7.8",
+        "loglevel": "^1.7.1"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.2.21",
+        "@types/google-protobuf": "^3.15.5",
+        "@types/mocha": "^9.0.0",
+        "chai": "^4.3.4",
+        "mocha": "^9.1.0",
+        "ts-mocha": "^8.0.0",
+        "typescript": "^4.3.5"
+    }
+}

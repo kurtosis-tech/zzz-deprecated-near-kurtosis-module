@@ -1,0 +1,3 @@
+interface NearLambdaArgs {
+    logLevel: string;
+}
