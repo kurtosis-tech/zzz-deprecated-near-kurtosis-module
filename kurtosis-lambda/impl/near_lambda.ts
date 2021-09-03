@@ -43,7 +43,8 @@ const LINKDROP_IMAGE: string = "nearprotocol/linkdrop"
 const EXPLORER_WAMP_SERVICE_ID: ServiceID = "explorer-wamp"
 const EXPLORER_WAMP_IMAGE: string = "nearprotocol/explorer-wamp"
 const EXPLORER_WAMP_PORT_NUMBER_01: string = "9090"
-const EXPLORER_WAMP_PORT_NUMBER_02: string = "8080"
+const EXPLORER_WAMP_PORT_NUMBER_02: string = "8000"
+const EXPLORER_WAMP_PORT_NUMBER_03: string = "8080"
 const EXPLORER_WAMP_PROTOCOL: string = "tcp"
 
 //Explorer Backend
@@ -126,13 +127,14 @@ export class NearLambda implements KurtosisLambda {
         log.info(INDEXER_SERVICE_ID + "with IP: " + indexerResult.value[0].getIPAddress() + " and port bindings: " + indexerResult.value[1]);
 
         //Linkdrop
-        /*const linkdropResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addLikdropService(networkCtx);
+        /*
+        const linkdropResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addLikdropService(networkCtx);
         if (!linkdropResult.isOk()) {
             return err(linkdropResult.error);
         }
         log.info(LINKDROP_SERVICE_ID + "with IP: " + linkdropResult.value[0].getIPAddress() + " and port bindings: " + linkdropResult.value[1]);
         */
-
+        
         //Explorer Wamp
         const explorerWampResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addExplorerWampService(networkCtx);
         if (!explorerWampResult.isOk()) {
@@ -147,20 +149,42 @@ export class NearLambda implements KurtosisLambda {
         }
         log.info(EXPLORER_BACKEND_SERVICE_ID + "with IP: " + explorerBackendResult.value[0].getIPAddress() + " and port bindings: " + explorerBackendResult.value[1]);
 
-        //Explorer Frontend
-        const explorerFrontendResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addExplorerFrontendService(networkCtx, explorerWampResult.value[1], contractHelperAppResult.value[1]);
-        if (!explorerFrontendResult.isOk()) {
-            return err(explorerFrontendResult.error);
-        }
-        log.info(EXPLORER_FRONTEND_SERVICE_ID + "with IP: " + explorerFrontendResult.value[0].getIPAddress() + " and port bindings: " + explorerFrontendResult.value[1]);
-
         //Wallet
-        const walletResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addWalletService(networkCtx, contractHelperAppResult.value[1], bridgeResult.value[1], explorerFrontendResult.value[1]);
+
+        //DELETE THESE LINES
+        log.info("Contract Helper APP Port Binding after calling add Wallet")
+        log.info("Contract Helper App PortBinding Value: ")
+        log.info(contractHelperAppResult.value[1].get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL))
+        log.info("Contract Helper App PortBinding Interface Port value: ")
+        log.info(contractHelperAppResult.value[1].get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)!.getInterfacePort())
+        log.info("Contract Helper App PortBinding Interface IP value: ")
+        log.info(contractHelperAppResult.value[1].get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)!.getInterfaceIp())
+        for (let [key, value] of contractHelperAppResult.value[1]) {
+            log.info("Key: " + key);
+            log.info("Value: " , JSON.stringify(value));
+        } 
+
+        log.info("Bridge Port Binding inside after calling Wallet")
+        for (let [key, value] of bridgeResult.value[1]) {
+            log.info("Key: " + key);
+            log.info("Value: " , JSON.stringify(value));
+        } 
+        //DELETE THESE LINES
+
+
+        const walletResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addWalletService(networkCtx, contractHelperAppResult.value[1], bridgeResult.value[1]);
         if (!walletResult.isOk()) {
             return err(walletResult.error);
         }
         log.info(WALLET_SERVICE_ID + "with IP: " + walletResult.value[0].getIPAddress() + " and port bindings: " + walletResult.value[1]);
 
+        //Explorer Frontend
+        const explorerFrontendResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addExplorerFrontendService(networkCtx, explorerWampResult.value[1], contractHelperAppResult.value[1], walletResult.value[1]);
+        if (!explorerFrontendResult.isOk()) {
+            return err(explorerFrontendResult.error);
+        }
+        log.info(EXPLORER_FRONTEND_SERVICE_ID + "with IP: " + explorerFrontendResult.value[0].getIPAddress() + " and port bindings: " + explorerFrontendResult.value[1]);
+        
         //Bridge Frontend
         const bridgeFrontendResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addBridgeFrontendService(networkCtx, walletResult.value[1], contractHelperAppResult.value[1]);
         if (!bridgeFrontendResult.isOk()) {
@@ -302,8 +326,7 @@ export class NearLambda implements KurtosisLambda {
     private async addWalletService(
             networkCtx: NetworkContext,
             contractHelperAppPortBinding: Map<string, PortBinding>,
-            bridgePortBinding: Map<string, PortBinding>,
-            explorerFrontendPortBinding: Map<string, PortBinding>): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
+            bridgePortBinding: Map<string, PortBinding>): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
 
         const usedPortsSet: Set<string> = new Set();
         const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
@@ -314,9 +337,49 @@ export class NearLambda implements KurtosisLambda {
 
         const containerRunConfigSupplier: (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error> = 
         (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-            const contractHelperAppHostPort: string = contractHelperAppPortBinding.get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)
-            const bridgeHostPort: string = bridgePortBinding.get(BRIDGE_PORT_NUMBER_01 + "/" + BRIDGE_PROTOCOL)
-            const explorerFrontendHostPort: string = explorerFrontendPortBinding.get(EXPLORER_FRONTEND_PORT_NUMBER + "/" + EXPLORER_FRONTEND_PROTOCOL)
+            
+
+            const contractHelperAppHostPortOptional: string | undefined = contractHelperAppPortBinding.get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)?.getInterfacePort()
+            if (contractHelperAppHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const contractHelperAppHostPort: string = contractHelperAppHostPortOptional!
+
+            
+            //DELETE THESE LINES
+            
+
+            log.info("Contract Helper App Host Port Optional value:")
+            log.info(contractHelperAppHostPortOptional)
+            log.info("Contract Helper App Host Port Optional value 2:")
+            log.info(contractHelperAppHostPortOptional)
+            log.info("Contract Helper App Host Port value:")
+            log.info(contractHelperAppHostPort)
+
+            log.info("Contract Helper APP Port Binding inside add Wallet")
+            log.info("Contract Helper App PortBinding Interface Port value: ")
+            log.info(contractHelperAppPortBinding.get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)!.getInterfacePort())
+            log.info("Contract Helper App PortBinding Interface IP value: ")
+            log.info(contractHelperAppPortBinding.get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)!.getInterfaceIp())
+            
+            for (let [key, value] of contractHelperAppPortBinding) {
+                log.info("Key: " + key);
+                log.info("Value: " , JSON.stringify(value));
+            } 
+
+            log.info("Bridge Port Binding inside add Wallet")
+            for (let [key, value] of bridgePortBinding) {
+                log.info("Key: " + key);
+                log.info("Value: " , JSON.stringify(value));
+            } 
+            //DELETE THESE LINES
+            
+            
+            const bridgeHostPortOptional: string | undefined  = bridgePortBinding.get(BRIDGE_PORT_NUMBER_01 + "/" + BRIDGE_PROTOCOL)?.getInterfacePort()
+            if (bridgeHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const bridgeHostPort: string = bridgeHostPortOptional!
 
             const environmentVariables: Map<string, string> = new Map();
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
@@ -325,7 +388,8 @@ export class NearLambda implements KurtosisLambda {
                 .set("REACT_APP_IS_MAINNET", "false")
                 .set("REACT_APP_NODE_URL", "http://localhost:" + bridgeHostPort)
                 .set("REACT_APP_ACCESS_KEY_FUNDING_AMOUNT", "3000000000000000000000000")
-                .set("EXPLORER_URL", "http://localhost:" + explorerFrontendHostPort)
+                .set("EXPLORER_URL", "http://localhost:" + "9001") //TODO we should replace this port with the explorerFrontend Host Port
+                //TODO we have a circular dependency with Explorer Frontend. We are not able to replace this "http://localhost:9001" with "http://explorerFrontendServiceID:explorerFrontendPort/profile" because it will be executed in the hostmachine's browser
                 
             ).build()
             return ok(result);
@@ -368,6 +432,7 @@ export class NearLambda implements KurtosisLambda {
         ).withUsedPorts(
             usedPortsSet.add(EXPLORER_WAMP_PORT_NUMBER_01+"/"+EXPLORER_WAMP_PROTOCOL)
             .add(EXPLORER_WAMP_PORT_NUMBER_02+"/"+EXPLORER_WAMP_PROTOCOL)
+            .add(EXPLORER_WAMP_PORT_NUMBER_03+"/"+EXPLORER_WAMP_PROTOCOL)
         ).build();
 
         const containerRunConfigSupplier: (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error> = 
@@ -418,7 +483,8 @@ export class NearLambda implements KurtosisLambda {
 
     private async addExplorerFrontendService(networkCtx: NetworkContext, 
             explorerWampPortBinding: Map<string, PortBinding>, 
-            contractHelperAppPortBinding: Map<string, PortBinding>): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
+            contractHelperAppPortBinding: Map<string, PortBinding>,
+            walletPortBinding: Map<string, PortBinding>): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
         
         const usedPortsSet: Set<string> = new Set();
         const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
@@ -429,15 +495,28 @@ export class NearLambda implements KurtosisLambda {
 
         const containerRunConfigSupplier: (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error> = 
         (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-            const explorerWampHostPort : string =  explorerWampPortBinding.get(EXPLORER_WAMP_PORT_NUMBER_01 + "/" + EXPLORER_WAMP_PROTOCOL)
-            const contractHelperAppHostPort: string = contractHelperAppPortBinding.get(CONTRACT_HELPER_DB_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL) 
+            const explorerWampHostPortOptional: string | undefined =  explorerWampPortBinding.get(EXPLORER_WAMP_PORT_NUMBER_01 + "/" + EXPLORER_WAMP_PROTOCOL)?.getInterfacePort()
+            if (explorerWampHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const explorerWampHostPort: string = explorerWampHostPortOptional!
+            const contractHelperAppHostPortOptional: string | undefined = contractHelperAppPortBinding.get(CONTRACT_HELPER_DB_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)?.getInterfacePort()
+            if (contractHelperAppHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const contractHelperAppHostPort: string = contractHelperAppHostPortOptional!
+            const walletHostPortOptional: string | undefined = walletPortBinding.get(WALLET_PORT_NUMBER + "/" + WALLET_PROTOCOL)?.getInterfacePort()
+            if (walletHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const walletHostPort: string = walletHostPortOptional!
             
             const environmentVariables: Map<string, string> = new Map();
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
                 environmentVariables.set("PORT", EXPLORER_FRONTEND_PORT_NUMBER)
                 .set("WAMP_NEAR_EXPLORER_URL", "ws://localhost:" + explorerWampHostPort + "/ws")
-                .set("WAMP_NEAR_EXPLORER_INTERNAL_URL", "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUMBER_01 + "/ws") //TODO we have a circular dependency with wallet. We are not able to replace this "http://localhost:1234/profile" with "http://walletServiceID:walletPort/profile" because it will be executed in the hostmachine's browser
-                .set("NEAR_NETWORKS", "[{\"name\": \"localhostnet\",\"explorerLink\": \"http://localhost:" + contractHelperAppHostPort + "\",\"aliases\": [\"localhost:" + contractHelperAppHostPort + "\", \"localhost\", \"127.0.0.1\", \"127.0.0.1:" + contractHelperAppHostPort  + "\"],\"nearWalletProfilePrefix\": \"http://localhost:1234/profile\"}]")
+                .set("WAMP_NEAR_EXPLORER_INTERNAL_URL", "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUMBER_01 + "/ws")
+                .set("NEAR_NETWORKS", "[{\"name\": \"localhostnet\",\"explorerLink\": \"http://localhost:" + contractHelperAppHostPort + "\",\"aliases\": [\"localhost:" + contractHelperAppHostPort + "\", \"localhost\", \"127.0.0.1\", \"127.0.0.1:" + contractHelperAppHostPort  + "\"],\"nearWalletProfilePrefix\": \"http://localhost:" + walletHostPort + "/profile\"}]")
             ).build()
             return ok(result);
         }
@@ -466,8 +545,17 @@ export class NearLambda implements KurtosisLambda {
         const containerRunConfigSupplier: (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error> = 
         (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const environmentVariables: Map<string, string> = new Map();
-            const walletHostPort: string = walletPortBinding.get(WALLET_PORT_NUMBER + "/" + WALLET_PROTOCOL)
-            const contractHelperAppHostPort: string = contractHelperAppPortBinding.get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)
+            const walletHostPortOptional: string | undefined = walletPortBinding.get(WALLET_PORT_NUMBER + "/" + WALLET_PROTOCOL)?.getInterfacePort()
+            if (walletHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const walletHostPort: string = walletHostPortOptional!
+            const contractHelperAppHostPortOptional: string | undefined = contractHelperAppPortBinding.get(CONTRACT_HELPER_APP_PORT_NUMBER + "/" + CONTRACT_HELPER_APP_PROTOCOL)?.getInterfacePort()
+            if (contractHelperAppHostPortOptional == undefined) {
+                return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
+            }
+            const contractHelperAppHostPort: string = contractHelperAppHostPortOptional!
+
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
                 environmentVariables.set("ETH_NODE_URL", BRIDGE_SERVICE_ID + ":" + BRIDGE_PROTOCOL)
                 .set("NEAR_WALLET_URL", "http://localhost:" + walletHostPort)
