@@ -51,5 +51,7 @@ local.properties
 # Ignore Vim helptags
 doc/tags
 
+node_modules
+
 .gradle
 build

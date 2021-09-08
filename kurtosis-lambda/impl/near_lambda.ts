@@ -18,7 +18,7 @@ const CONTRACT_HELPER_APP_PROTOCOL: string = "tcp"
 //Bridge
 const BRIDGE_SERVICE_ID: ServiceID = "bridge"
 const BRIDGE_IMAGE: string = "nearprotocol/bridge"
-const BRIDGE_PORT_NUMBER_01 = "3030"
+const BRIDGE_RPC_PORT = "3030"
 const BRIDGE_PORT_NUMBER_02 = "9545"
 const BRIDGE_PORT_NUMBER_03 = "8080"
 const BRIDGE_PORT_NUMBER_04 = "8081"
@@ -98,12 +98,7 @@ export class NearLambda implements KurtosisLambda {
                 "it's not an Error so we can't report any more information than this"));
         }
 
-        //Contract Helper DB
-        const contractHelperDBResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addContractHelperDbService(networkCtx);
-        if (!contractHelperDBResult.isOk()) {
-            return err(contractHelperDBResult.error);
-        }
-        log.info(CONTRACT_HELPER_DB_SERVICE_ID + "with IP: " + contractHelperDBResult.value[0].getIPAddress() + " and port bindings: " + contractHelperDBResult.value[1]);
+        // TODO set log level from params
 
         //Bridge
         const bridgeResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addBridgeService(networkCtx);
@@ -111,6 +106,19 @@ export class NearLambda implements KurtosisLambda {
             return err(bridgeResult.error);
         }
         log.info(BRIDGE_SERVICE_ID + "with IP: " + bridgeResult.value[0].getIPAddress() + " and port bindings: " + bridgeResult.value[1]);
+
+        //Contract Helper DB
+        const contractHelperDBResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addContractHelperDbService(networkCtx);
+        if (!contractHelperDBResult.isOk()) {
+            return err(contractHelperDBResult.error);
+        }
+        log.info(CONTRACT_HELPER_DB_SERVICE_ID + "with IP: " + contractHelperDBResult.value[0].getIPAddress() + " and port bindings: " + contractHelperDBResult.value[1]);
+
+        // TODO DEBUGGING Give some time for the contract helper DB & bridge to come up
+        await new Promise(resolve => setTimeout(resolve, 10_000));
+
+        // TODO DEBUGGING
+        return ok("{}");
 
         //Contract Helper App
         const contractHelperAppResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await this.addContractHelperAppService(networkCtx);
@@ -172,7 +180,7 @@ export class NearLambda implements KurtosisLambda {
 
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
             "http://localhost:"+ walletResult.value[1].get(WALLET_PORT_NUMBER + "/" + WALLET_PROTOCOL)!.getInterfacePort(),
-            "http://localhost:"+ bridgeResult.value[1].get(BRIDGE_PORT_NUMBER_01 + "/" + BRIDGE_PROTOCOL)!.getInterfacePort(),
+            "http://localhost:"+ bridgeResult.value[1].get(BRIDGE_RPC_PORT + "/" + BRIDGE_PROTOCOL)!.getInterfacePort(),
             "http://localhost:"+ explorerFrontendResult.value[1].get(EXPLORER_FRONTEND_PORT_NUMBER + "/" + EXPLORER_FRONTEND_PROTOCOL)!.getInterfacePort()
         );
 
@@ -231,7 +239,7 @@ export class NearLambda implements KurtosisLambda {
         (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const environmentVariables: Map<string, string> = new Map();
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-                environmentVariables.set("NODE_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_PORT_NUMBER_01)
+                environmentVariables.set("NODE_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_RPC_PORT)
                 .set("INDEXER_DB_CONNECTION", "postgres://indexer:indexer@" + CONTRACT_HELPER_DB_SERVICE_ID + "/indexer")
                 .set("HELPER_DB_USERNAME", "helper")
                 .set("HELPER_DB_PASSWORDS", "helper")
@@ -255,7 +263,7 @@ export class NearLambda implements KurtosisLambda {
         const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
             BRIDGE_IMAGE,
         ).withUsedPorts(
-            usedPortsSet.add(BRIDGE_PORT_NUMBER_01+"/"+BRIDGE_PROTOCOL)
+            usedPortsSet.add(BRIDGE_RPC_PORT+"/"+BRIDGE_PROTOCOL)
             .add(BRIDGE_PORT_NUMBER_02+"/"+BRIDGE_PROTOCOL)
             .add(BRIDGE_PORT_NUMBER_03+"/"+BRIDGE_PROTOCOL)
             .add(BRIDGE_PORT_NUMBER_04+"/"+BRIDGE_PROTOCOL)
@@ -322,7 +330,7 @@ export class NearLambda implements KurtosisLambda {
             }
             const contractHelperAppHostPort: string = contractHelperAppHostPortOptional!
             
-            const bridgeHostPortOptional: string | undefined  = bridgePortBinding.get(BRIDGE_PORT_NUMBER_01 + "/" + BRIDGE_PROTOCOL)?.getInterfacePort()
+            const bridgeHostPortOptional: string | undefined  = bridgePortBinding.get(BRIDGE_RPC_PORT + "/" + BRIDGE_PROTOCOL)?.getInterfacePort()
             if (typeof bridgeHostPortOptional === undefined) {
                 return err(new Error("This is and error in Kurt Core, all services should have defined the PortBinding values"));
             }
@@ -358,7 +366,7 @@ export class NearLambda implements KurtosisLambda {
         (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const environmentVariables: Map<string, string> = new Map();
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-                environmentVariables.set("NODE_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_PORT_NUMBER_01)
+                environmentVariables.set("NODE_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_RPC_PORT)
             ).build()
             return ok(result);
         }
@@ -408,7 +416,7 @@ export class NearLambda implements KurtosisLambda {
         (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const environmentVariables: Map<string, string> = new Map();
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-                environmentVariables.set("NEAR_RPC_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_PORT_NUMBER_01)
+                environmentVariables.set("NEAR_RPC_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_RPC_PORT)
                 .set("NEAR_GENESIS_RECORDS_URL", "http://" + BRIDGE_SERVICE_ID + ":" + BRIDGE_PORT_NUMBER_05 + "/genesis.json")
                 .set("WAMP_NEAR_EXPLORER_URL", "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUMBER_01  + "/ws")
                 .set("WAMP_NEAR_EXPLORER_BACKEND_SECRET", "back")
