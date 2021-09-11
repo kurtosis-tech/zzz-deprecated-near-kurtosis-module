@@ -15,48 +15,47 @@ const EXPLORER_WAMP_SERVICE_ID: ServiceID = "wamp";
 const EXPLORER_WAMP_IMAGE: string = "near-explorer_wamp";
 const EXPLORER_WAMP_PORT_NUM: number = 8080;
 const EXPLORER_WAMP_DOCKER_PORT_DESC: string = EXPLORER_WAMP_PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-// const EXPLORER_WAMP_PORT_ENVVAR: string = "WAMP_EXPLORER_PORT";
-// const EXPLORER_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_EXPLORER_BACKEND_SECRET";
-
-const EXPLORER_WAMP_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "WAMP_NEAR_EXPLORER_PORT": EXPLORER_WAMP_PORT_NUM.toString(),
-    "WAMP_NEAR_EXPLORER_BACKEND_SECRET": WAMP_BACKEND_SECRET,
-}));
+const EXPLORER_WAMP_EXPLORER_PORT_ENVVAR: string = "WAMP_NEAR_EXPLORER_PORT";
+const EXPLORER_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
+// const EXPLORER_WAMP_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
+//     "WAMP_NEAR_EXPLORER_PORT": EXPLORER_WAMP_PORT_NUM.toString(),
+//     "WAMP_NEAR_EXPLORER_BACKEND_SECRET": WAMP_BACKEND_SECRET,
+// }));
 
 // Explorer Backend
 const EXPLORER_BACKEND_SERVICE_ID: ServiceID = "backend";
 const EXPLORER_BACKEND_IMAGE: string = "near-explorer_backend";
 const EXPLORER_BACKEND_WAMP_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL"
-// const EXPLORER_BACKEND_WAMP_SECRET_ENVVAR: string  = "WAMP_EXPLORER_BACKEND_SECRET";
-const EXPLORER_BACKEND_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "WAMP_NEAR_EXPLORER_BACKEND_SECRET": WAMP_BACKEND_SECRET,
-}));
+const EXPLORER_BACKEND_WAMP_SECRET_ENVVAR: string  = "WAMP_EXPLORER_BACKEND_SECRET";
+// const EXPLORER_BACKEND_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
+//     "WAMP_NEAR_EXPLORER_BACKEND_SECRET": WAMP_BACKEND_SECRET,
+// }));
 const EXPLORER_BACKEND_ENTRYPOINT_ARGS: string[] = [
     "npm", 
     "run", 
     "start:testnet-with-indexer"
 ];
-// TODO Mem limit??
+TODO Mem limit??
 
 // Explorer Frontend
 const EXPLORER_FRONTEND_SERVICE_ID: ServiceID = "frontend";
 const EXPLORER_FRONTEND_IMAGE: string = "near-explorer_frontend";
 const EXPLORER_FRONTEND_PORT_NUM: number = 3000;
 const EXPLORER_FRONTEND_DOCKER_PORT_DESC: string = EXPLORER_FRONTEND_PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-// const EXPLORER_FRONTEND_PORT_ENVVAR: string = "PORT";
+const EXPLORER_FRONTEND_PORT_ENVVAR: string = "PORT";
 const EXPLORER_FRONTEND_WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";
 const EXPLORER_FRONTEND_WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
-// const EXPLORER_FRONTEND_NEAR_NETWORKS_ENVVAR: string = "NEAR_NETWORKS";
-// const EXPLORER_FRONTEND_NEAR_NETWORKS_VALUE: string = "[{\"name\": \"testnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]";
-// const EXPLORER_FRONTEND_DATA_SOURCE_ENVVAR: string = "EXPLORER_DATA_SOURCE";
-// const EXPLORER_FRONTEND_INDEXER_DATA_SOURCE: string = "INDEXER_BACKEND";
+const EXPLORER_FRONTEND_NEAR_NETWORKS_ENVVAR: string = "NEAR_NETWORKS";
+const EXPLORER_FRONTEND_NEAR_NETWORKS_VALUE: string = "[{\"name\": \"testnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]";
+const EXPLORER_FRONTEND_DATA_SOURCE_ENVVAR: string = "EXPLORER_DATA_SOURCE";
+const EXPLORER_FRONTEND_INDEXER_DATA_SOURCE: string = "INDEXER_BACKEND";
 
-const EXPLORER_FRONTEND_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "PORT": EXPLORER_FRONTEND_PORT_NUM.toString(),
-    "EXPLORER_DATA_SOURCE": "INDEXER_BACKEND",
-    // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
-    "NEAR_NETWORKS": "[{\"name\": \"testnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
-}));
+// const EXPLORER_FRONTEND_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
+//     "PORT": EXPLORER_FRONTEND_PORT_NUM.toString(),
+//     "EXPLORER_DATA_SOURCE": "INDEXER_BACKEND",
+//     // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
+//     "NEAR_NETWORKS": "[{\"name\": \"testnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
+// }));
 
 type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
 
@@ -291,7 +290,10 @@ export class NearLambda implements KurtosisLambda {
             usedPortsSet,
         ).build();
 
-        const envVars: Map<string, string> = new Map(EXPLORER_WAMP_STATIC_ENVVARS);
+        // const envVars: Map<string, string> = new Map(EXPLORER_WAMP_STATIC_ENVVARS);
+        const envVars: Map<string, string> = new Map();
+        envVars.set(EXPLORER_WAMP_EXPLORER_PORT_ENVVAR, EXPLORER_WAMP_PORT_NUM.toString());
+        envVars.set(EXPLORER_WAMP_BACKEND_SECRET_ENVVAR, WAMP_BACKEND_SECRET)
         const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
                 envVars
@@ -311,9 +313,10 @@ export class NearLambda implements KurtosisLambda {
             EXPLORER_BACKEND_IMAGE,
         ).build();
 
-        const envVars: Map<string, string> = new Map(EXPLORER_BACKEND_STATIC_ENVVARS);
+        // const envVars: Map<string, string> = new Map(EXPLORER_BACKEND_STATIC_ENVVARS);
+        const envVars: Map<string, string> = new Map();
         envVars.set(EXPLORER_BACKEND_WAMP_URL_ENVVAR, "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUM + "/ws");
-        // envVars.set(EXPLORER_BACKEND_WAMP_SECRET_ENVVAR, WAMP_BACKEND_SECRET);
+        envVars.set(EXPLORER_BACKEND_WAMP_SECRET_ENVVAR, WAMP_BACKEND_SECRET);
         const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
                 envVars
@@ -340,10 +343,11 @@ export class NearLambda implements KurtosisLambda {
         ).build();
 
 
-        const envVars: Map<string, string> = new Map(EXPLORER_FRONTEND_STATIC_ENVVARS);
-        // envVars.set(EXPLORER_FRONTEND_PORT_ENVVAR, EXPLORER_FRONTEND_PORT_NUM.toString());
-        // envVars.set(EXPLORER_FRONTEND_NEAR_NETWORKS_ENVVAR, EXPLORER_FRONTEND_NEAR_NETWORKS_VALUE);
-        // envVars.set(EXPLORER_FRONTEND_DATA_SOURCE_ENVVAR, "INDEXER_BACKEND");
+        // const envVars: Map<string, string> = new Map(EXPLORER_FRONTEND_STATIC_ENVVARS);
+        const envVars: Map<string, string> = new Map();
+        envVars.set(EXPLORER_FRONTEND_PORT_ENVVAR, EXPLORER_FRONTEND_PORT_NUM.toString());
+        envVars.set(EXPLORER_FRONTEND_NEAR_NETWORKS_ENVVAR, EXPLORER_FRONTEND_NEAR_NETWORKS_VALUE);
+        envVars.set(EXPLORER_FRONTEND_DATA_SOURCE_ENVVAR, "INDEXER_BACKEND");
         envVars.set(EXPLORER_FRONTEND_WAMP_INTERNAL_URL_ENVVAR, "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUM + "/ws");
         // If there's no host machine WAMP port (i.e. Kurtosis isn't running in debug mode) then we can't set the WAMP Docker-external variable
         if (wampHostMachinePortBindingOpt !== undefined) {
