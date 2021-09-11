@@ -12,7 +12,7 @@ export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
         // TODO DEBUGGING
         console.log("Parsing params and doing a thing!");
 
-        let args: NearLambdaArgs;
+        let args: LambdaLaunchArgs;
         try {
             args = JSON.parse(serializedCustomParamsStr);
         } catch (e: any) {
@@ -25,7 +25,6 @@ export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
                 "it's not an Error so we can't report any more information than this"));
         }
 
-        // TODO DEbugging
         console.log("Args:");
         console.log(args);
 
@@ -34,9 +33,6 @@ export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
             console.log("Error in setting the log level")
             return err(setLogLevelResult.error);
         }
-
-        // TODO DEBUGGING
-        console.log("After setting the log level")
 
         const lambda: KurtosisLambda = new NearLambda();
         return ok(lambda);

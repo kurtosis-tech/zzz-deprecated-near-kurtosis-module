@@ -1,3 +1,5 @@
-interface NearLambdaArgs {
+interface LambdaLaunchArgs {
     logLevel: string;
 }
+
+interface ExecuteArgs {}
