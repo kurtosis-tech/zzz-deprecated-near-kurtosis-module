@@ -50,9 +50,6 @@ const EXPLORER_FRONTEND_WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_U
 
 type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
 
-interface NearLambdaParams {
-}
-
 class NearLambdaResult {
     // When Kurtosis is in debug mode, the explorer frontend's port will be bound to a port on the user's machine so they can access the frontend
     //  even though the frontend is running inside Docker. When Kurtosis is not in debug mode, this will be null.

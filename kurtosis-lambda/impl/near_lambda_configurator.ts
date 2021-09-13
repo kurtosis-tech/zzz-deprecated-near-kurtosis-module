@@ -9,9 +9,6 @@ type LoglevelAcceptableLevelStrs = log.LogLevelDesc
 
 export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
     public parseParamsAndCreateKurtosisLambda(serializedCustomParamsStr: string): Result<KurtosisLambda, Error> {
-        // TODO DEBUGGING
-        console.log("Parsing params and doing a thing!");
-
         let args: LambdaLaunchArgs;
         try {
             args = JSON.parse(serializedCustomParamsStr);
@@ -25,7 +22,7 @@ export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
                 "it's not an Error so we can't report any more information than this"));
         }
 
-        console.log("Args:");
+        console.log("NEAR Lambda initialization args:");
         console.log(args);
 
         const setLogLevelResult: Result<null, Error> = NearLambdaConfigurator.setLogLevel(args.logLevel)

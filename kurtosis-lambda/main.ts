@@ -5,10 +5,7 @@ import * as log from "loglevel";
 const SUCCESS_EXIT_CODE: number = 0;
 const FAILURE_EXIT_CODE: number = 1;
 
-// >>>>>>>>>>>>>>>>>>> REPLACE WITH YOUR OWN CONFIGURATOR <<<<<<<<<<<<<<<<<<<<<<<<
 const configurator: KurtosisLambdaConfigurator = new NearLambdaConfigurator();
-// >>>>>>>>>>>>>>>>>>> REPLACE WITH YOUR OWN CONFIGURATOR <<<<<<<<<<<<<<<<<<<<<<<<
-
 const lambdaExecutor: KurtosisLambdaExecutor = new KurtosisLambdaExecutor(configurator)
 lambdaExecutor.run().then(runLambdaResult => {
     let exitCode: number = SUCCESS_EXIT_CODE;
