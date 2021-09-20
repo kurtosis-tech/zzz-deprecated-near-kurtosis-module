@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Pinned base Node image in Dockerfile to `node:14.17.6-alpine3.14`
 
 # 0.2.1
 ### Features
