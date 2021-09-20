@@ -1,4 +1,6 @@
 # TBD
+
+# 0.2.1
 ### Features
 * Build Docker image named `kurtosistech/near-kurtosis-lambda`
 * Properly version Docker images using Git history
