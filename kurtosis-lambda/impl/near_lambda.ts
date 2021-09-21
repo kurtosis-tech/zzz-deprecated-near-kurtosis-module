@@ -2,22 +2,16 @@ import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationCo
 import { KurtosisLambda } from "kurtosis-lambda-api-lib";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
-import { addContractHelperDb } from "./services/contract_helper_db";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, TCP_PROTOCOL } from "./consts";
+import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
+import { DOCKER_PORT_PROTOCOL_SEPARATOR, getPortNumFromHostMachinePortBinding, TCP_PROTOCOL, tryToFormHostMachineUrl } from "./consts";
+import { addNearupService, NearupInfo } from "./services/nearup";
+import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
 
 
 export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
 
 const WAMP_BACKEND_SECRET: string = "back";
 
-
-// Nearcore
-const NEARUP_SERVICE_ID: string = "nearup";
-const NEARUP_IMAGE: string = "nearprotocol/nearup";
-const NEARUP_PORT_NUM: number = 3030;
-const NEARUP_DOCKER_PORT_DESC: string = NEARUP_PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-
-// Contract Helper DB
 
 // Explorer WAMP
 const EXPLORER_WAMP_SERVICE_ID: ServiceID = "wamp";
@@ -60,20 +54,29 @@ const EXPLORER_FRONTEND_WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_U
 class NearLambdaResult {
     // When Kurtosis is in debug mode, the explorer frontend's port will be bound to a port on the user's machine so they can access the frontend
     //  even though the frontend is running inside Docker. When Kurtosis is not in debug mode, this will be null.
-    private readonly explorerHostMachineUrl: string | null;
+    private readonly maybeHostMachineExplorerUrl: string | null;
 
     // Same thing - when debug mode is enabled, the nearup container will be bound to a port on the user's host machine
-    private readonly nearupHostMachineUrl: string | null;
+    private readonly maybeHostMachineNearupStatusUrl: string | null;
 
-    constructor(explorerHostMachineUrl: string | null, nearupHostMachineUrl: string | null) {
-        this.explorerHostMachineUrl = explorerHostMachineUrl;
-        this.nearupHostMachineUrl = nearupHostMachineUrl;
+    private readonly maybeHostMachineContractHelperUrl: string | null;
+
+    constructor(
+        maybeHostMachineExplorerUrl: string | null, 
+        maybeHostMachineNearupStatusUrl: string | null,
+        maybeHostMachineContractHelperUrl: string | null
+    ) {
+        this.maybeHostMachineExplorerUrl = maybeHostMachineExplorerUrl;
+        this.maybeHostMachineNearupStatusUrl = maybeHostMachineNearupStatusUrl;
+        this.maybeHostMachineContractHelperUrl = maybeHostMachineContractHelperUrl;
     }
 }
 
 export class NearLambda implements KurtosisLambda {
     constructor() {}
 
+    // All this logic comes from translating https://github.com/near/docs/blob/975642ad49338bf8728a675def1f8bec8a780922/docs/local-setup/entire-setup.md
+    //  into Kurtosis-compatible code
     async execute(networkCtx: NetworkContext, serializedParams: string): Promise<Result<string, Error>> {
         log.info("Near Lambda receives serializedParams '" + serializedParams + "'");
         let args: ExecuteArgs;
@@ -91,25 +94,33 @@ export class NearLambda implements KurtosisLambda {
 
         // TODO handle custom params here
 
-        const addNearupServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await NearLambda.addNearupService(networkCtx)
+        const addNearupServiceResult: Result<NearupInfo, Error> = await addNearupService(networkCtx)
         if (addNearupServiceResult.isErr()) {
             return err(addNearupServiceResult.error);
         }
-        const [nearupServiceCtx, nearupHostPortBindings] = addNearupServiceResult.value;
-        const formNearupUrlResult: Result<string | null, Error> = NearLambda.tryToFormHostMachineUrl(
-            NEARUP_DOCKER_PORT_DESC, 
-            nearupHostPortBindings,
-            (ipAddr: string, portNum: number) => "http://" + ipAddr + ":" + portNum.toString() + "/status"
-        );
-        if (formNearupUrlResult.isErr()) {
-            return err(formNearupUrlResult.error);
-        }
-        const nearupUrl: string | null = formNearupUrlResult.value;
+        const nearupInfo: NearupInfo = addNearupServiceResult.value;
 
-        const addContractHelperDbServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await addContractHelperDb(networkCtx)
+        const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(networkCtx)
         if (addContractHelperDbServiceResult.isErr()) {
             return err(addContractHelperDbServiceResult.error);
         }
+        const contractHelperDbInfo: ContractHelperDbInfo = addContractHelperDbServiceResult.value;
+
+        const addContractHelperServiceResult: Result<ContractHelperServiceInfo, Error> = await addContractHelperService(
+            networkCtx,
+            contractHelperDbInfo.getNetworkInternalHostname(),
+            contractHelperDbInfo.getNetworkInternalPortNum(),
+            contractHelperDbInfo.getDbUsername(),
+            contractHelperDbInfo.getDbPassword(),
+            nearupInfo.getNetworkInternalHostname(),
+            nearupInfo.getNetworkInternalPortNum(),
+            nearupInfo.getValidatorKey()
+        );
+        if (addContractHelperServiceResult.isErr()) {
+            return err(addContractHelperServiceResult.error);
+        }
+        const contractHelperServiceInfo: ContractHelperServiceInfo = addContractHelperServiceResult.value;
+
 
         // TODO UNCOMMENT WHEN NEARCORE IS WORKING
         /*
@@ -143,9 +154,26 @@ export class NearLambda implements KurtosisLambda {
         */
         const frontendUrl: string | null = null;
 
+        const maybeNearupStatusUrlResult: Result<string | null, Error> = tryToFormHostMachineUrl(
+            nearupInfo.getMaybeHostMachinePortBinding(),
+            (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}/status`
+        )
+        if (maybeNearupStatusUrlResult.isErr()) {
+            return err(maybeNearupStatusUrlResult.error);
+        }
+
+        const maybeContractHelperUrlResult: Result<string | null, Error> = tryToFormHostMachineUrl(
+            contractHelperServiceInfo.getMaybeHostMachinePortBinding(),
+            (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
+        )
+        if (maybeContractHelperUrlResult.isErr()) {
+            return err(maybeContractHelperUrlResult.error);
+        }
+
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
             frontendUrl,
-            nearupUrl
+            maybeNearupStatusUrlResult.value,
+            maybeContractHelperUrlResult.value
         );
 
         let stringResult;
@@ -168,31 +196,6 @@ export class NearLambda implements KurtosisLambda {
     // ====================================================================================================
     //                                       Private helper functions
     // ====================================================================================================
-    private static async addNearupService(networkCtx: NetworkContext): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
-        const usedPortsSet: Set<string> = new Set();
-        usedPortsSet.add(NEARUP_DOCKER_PORT_DESC)
-        const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-            NEARUP_IMAGE,
-        ).withUsedPorts(
-            usedPortsSet
-        ).build();
-
-        const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-            const result: ContainerRunConfig = new ContainerRunConfigBuilder().withCmdOverride(
-                [
-                    "run", 
-                    "localnet"
-                ]
-            ).build();
-            return ok(result);
-        }
-
-        const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(NEARUP_SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
-        if (addServiceResult.isErr()) {
-            return err(addServiceResult.error);
-        }
-        return ok(addServiceResult.value);
-    }
 
 
     private static async addWampService(networkCtx: NetworkContext): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
@@ -256,7 +259,7 @@ export class NearLambda implements KurtosisLambda {
         const envVars: Map<string, string> = new Map(EXPLORER_FRONTEND_STATIC_ENVVARS);
         // If there's no host machine WAMP port (i.e. Kurtosis isn't running in debug mode) then we can't set the WAMP Docker-external variable
         if (wampHostMachinePortBindingOpt !== undefined) {
-            const wampHostMachinePortNumResult: Result<number, Error> = NearLambda.getPortNumFromHostMachinePortBinding(wampHostMachinePortBindingOpt);
+            const wampHostMachinePortNumResult: Result<number, Error> = getPortNumFromHostMachinePortBinding(wampHostMachinePortBindingOpt);
             if (wampHostMachinePortNumResult.isErr()) {
                 return err(wampHostMachinePortNumResult.error);
             }
@@ -278,39 +281,4 @@ export class NearLambda implements KurtosisLambda {
         return ok(addServiceResult.value);
     }
 
-    private static getPortNumFromHostMachinePortBinding(binding: PortBinding): Result<number, Error> {
-        const portStr: string = binding.getInterfacePort();
-        const portStrParts: string[] = portStr.split(DOCKER_PORT_PROTOCOL_SEPARATOR);
-        const portNumStr: string = portStrParts[0];
-        let portNum: number;
-        try {
-            portNum = parseInt(portNumStr);
-        } catch (e: any) {
-            return err(new Error("Couldn't parse host machine port binding number string '" + portNumStr + "' to a number"));
-        }
-        return ok(portNum);
-    }
-
-    // IF a host machine port binding is available, call the urlSupplier function to form a URL out of the port binding IP & port
-    // If no host machine port binding is available, return null
-    private static tryToFormHostMachineUrl(
-            portDescriptor: string, 
-            allHostMachinePortBindings: Map<string, PortBinding>,
-            urlSupplier: (ipAddr: string, portNum: number) => string
-    ): Result<string | null, Error> {
-        const hostMachinePortBindingOpt: PortBinding | undefined = allHostMachinePortBindings.get(portDescriptor);
-        let result: string | null;
-        if (hostMachinePortBindingOpt !== undefined) {
-            const hostMachinePortNumResult: Result<number, Error> = NearLambda.getPortNumFromHostMachinePortBinding(hostMachinePortBindingOpt);
-            if (hostMachinePortNumResult.isErr()) {
-                return err(hostMachinePortNumResult.error);
-            }
-            const hostMachinePortNum: number = hostMachinePortNumResult.value;
-            result = urlSupplier(hostMachinePortBindingOpt.getInterfaceIp(), hostMachinePortNum);
-        } else {
-            // There was no Docker-external host machine port bound for the frontend, so we must give a null result to the user
-            result = null;
-        }
-        return ok(result);
-    }
 }

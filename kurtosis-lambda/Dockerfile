@@ -10,6 +10,9 @@ RUN yarn install
 # Copy the code into the container
 COPY . .
 
+# Copy local static files inside the Kurtosis Lambda image
+COPY kurtosis-lambda/static_files /static-files
+
 RUN yarn build
 
 # Build the application
