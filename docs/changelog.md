@@ -2,6 +2,9 @@
 ### Fixes
 * Pinned base Node image in Dockerfile to `node:14.17.6-alpine3.14`
 
+### Changes
+* Upgrade to `lambda-api-lib` 0.9.0
+
 # 0.2.1
 ### Features
 * Build Docker image named `kurtosistech/near-kurtosis-lambda`

@@ -166,7 +166,7 @@ export class NearLambda implements KurtosisLambda {
         const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
             const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
                 envVars
-            ).wthEntrypointOverride(
+            ).withEntrypointOverride(
                 EXPLORER_BACKEND_ENTRYPOINT_ARGS
             ).build();
             return ok(result);
