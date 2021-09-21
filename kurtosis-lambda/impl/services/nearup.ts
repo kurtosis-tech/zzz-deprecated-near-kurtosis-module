@@ -20,18 +20,18 @@ export class NearupInfo {
     private readonly networkInternalHostname: string;
     private readonly networkInternalPortNum: number;
     // Will only be set if debug mode is enabled
-    private readonly maybeHostMachinePortBinding: PortBinding | undefined;
+    private readonly maybeHostMachineUrl: string | undefined;
     private readonly validatorKey: string;
 
     constructor(
         networkInternalHostname: string,
         networkInternalPortNum: number,
-        maybeHostMachinePortBinding: PortBinding | undefined,
+        maybeHostMachineUrl: string | undefined,
         validatorKey: string,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPortNum = networkInternalPortNum;
-        this.maybeHostMachinePortBinding = maybeHostMachinePortBinding;
+        this.maybeHostMachineUrl = maybeHostMachineUrl;
         this.validatorKey = validatorKey;
     }
 
@@ -43,8 +43,8 @@ export class NearupInfo {
         return this.networkInternalPortNum;
     }
 
-    public getMaybeHostMachinePortBinding(): PortBinding | undefined {
-        return this.maybeHostMachinePortBinding;
+    public getMaybeHostMachineUrl(): string | undefined {
+        return this.maybeHostMachineUrl;
     }
 
     public getValidatorKey(): string {
@@ -85,10 +85,19 @@ export async function addNearupService(networkCtx: NetworkContext): Promise<Resu
     }
     const validatorKey: string = getValidatorKeyResult.value;
 
+    const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
+        maybeHostMachinePortBinding,
+        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
+    )
+    if (formHostMachineUrlResult.isErr()) {
+        return err(formHostMachineUrlResult.error);
+    }
+    const maybeHostMachineUrl: string | undefined = formHostMachineUrlResult.value;
+
     const result: NearupInfo = new NearupInfo(
         NEARUP_SERVICE_ID,
         NEARUP_PORT_NUM,
-        maybeHostMachinePortBinding,
+        maybeHostMachineUrl,
         validatorKey
     );
 

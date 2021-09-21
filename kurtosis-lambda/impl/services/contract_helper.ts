@@ -36,16 +36,16 @@ export class ContractHelperServiceInfo {
     private readonly networkInternalHostname: string;
     private readonly networkInternalPorNum: number;
     // Will only be set if debug mode is enabled
-    private readonly maybeHostMachinePortBinding: PortBinding | undefined;
+    private readonly maybeHostMachineUrl: string | undefined;
 
     constructor(
         networkInternalHostname: string,
         networkInternalPorNum: number,
-        maybeHostMachinePortBinding: PortBinding | undefined,
+        maybeHostMachineUrl: string | undefined,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPorNum = networkInternalPorNum;
-        this.maybeHostMachinePortBinding = maybeHostMachinePortBinding;
+        this.maybeHostMachineUrl = maybeHostMachineUrl;
     }
 
     public getNetworkInternalHostname(): string {
@@ -56,8 +56,8 @@ export class ContractHelperServiceInfo {
         return this.networkInternalPorNum;
     }
 
-    public getMaybeHostMachinePortBinding(): PortBinding | undefined {
-        return this.maybeHostMachinePortBinding;
+    public getMaybeHostMachineUrl(): string | undefined {
+        return this.maybeHostMachineUrl;
     }
 }
 
@@ -110,11 +110,21 @@ export async function addContractHelperService(
         return err(addServiceResult.error);
     }
     const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
+    const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
+
+    const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
+        maybeHostMachinePortBinding,
+        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
+    )
+    if (formHostMachineUrlResult.isErr()) {
+        return err(formHostMachineUrlResult.error);
+    }
+    const maybeHostMachineUrl: string | undefined = formHostMachineUrlResult.value;
 
     const result: ContractHelperServiceInfo = new ContractHelperServiceInfo(
         SERVICE_ID,
         PORT_NUM,
-        hostMachinePortBindings.get(DOCKER_PORT_DESC)
+        maybeHostMachineUrl,
     );
 
     return ok(result);

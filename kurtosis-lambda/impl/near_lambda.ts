@@ -6,6 +6,7 @@ import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_h
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, getPortNumFromHostMachinePortBinding, TCP_PROTOCOL, tryToFormHostMachineUrl } from "./consts";
 import { addNearupService, NearupInfo } from "./services/nearup";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
+import { addWallet, WalletInfo } from "./services/wallet";
 
 
 export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
@@ -57,18 +58,22 @@ class NearLambdaResult {
     private readonly maybeHostMachineExplorerUrl: string | null;
 
     // Same thing - when debug mode is enabled, the nearup container will be bound to a port on the user's host machine
-    private readonly maybeHostMachineNearupStatusUrl: string | null;
+    private readonly maybeHostMachineNearNodeUrl: string | null;
 
     private readonly maybeHostMachineContractHelperUrl: string | null;
 
+    private readonly maybeHostMachineWalletUrl: string | null;
+
     constructor(
         maybeHostMachineExplorerUrl: string | null, 
-        maybeHostMachineNearupStatusUrl: string | null,
-        maybeHostMachineContractHelperUrl: string | null
+        maybeHostMachineNearNodeUrl: string | null,
+        maybeHostMachineContractHelperUrl: string | null,
+        maybeHostMachineWalletUrl: string | null,
     ) {
         this.maybeHostMachineExplorerUrl = maybeHostMachineExplorerUrl;
-        this.maybeHostMachineNearupStatusUrl = maybeHostMachineNearupStatusUrl;
+        this.maybeHostMachineNearNodeUrl = maybeHostMachineNearNodeUrl;
         this.maybeHostMachineContractHelperUrl = maybeHostMachineContractHelperUrl;
+        this.maybeHostMachineWalletUrl = maybeHostMachineWalletUrl;
     }
 }
 
@@ -122,6 +127,16 @@ export class NearLambda implements KurtosisLambda {
         }
         const contractHelperServiceInfo: ContractHelperServiceInfo = addContractHelperServiceResult.value;
 
+        const addWalletResult: Result<WalletInfo, Error> = await addWallet(
+            networkCtx,
+            nearupInfo.getMaybeHostMachineUrl(),
+            contractHelperServiceInfo.getMaybeHostMachineUrl(),
+            undefined, // TODO TODO TODO FIX THIS!!!
+        );
+        if (addWalletResult.isErr()) {
+            return err(addWalletResult.error);
+        }
+        const walletInfo: WalletInfo = addWalletResult.value;
 
         // TODO UNCOMMENT WHEN NEARCORE IS WORKING
         /*
@@ -155,26 +170,13 @@ export class NearLambda implements KurtosisLambda {
         */
         const frontendUrl: string | null = null;
 
-        const maybeNearupStatusUrlResult: Result<string | null, Error> = tryToFormHostMachineUrl(
-            nearupInfo.getMaybeHostMachinePortBinding(),
-            (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}/status`
-        )
-        if (maybeNearupStatusUrlResult.isErr()) {
-            return err(maybeNearupStatusUrlResult.error);
-        }
 
-        const maybeContractHelperUrlResult: Result<string | null, Error> = tryToFormHostMachineUrl(
-            contractHelperServiceInfo.getMaybeHostMachinePortBinding(),
-            (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
-        )
-        if (maybeContractHelperUrlResult.isErr()) {
-            return err(maybeContractHelperUrlResult.error);
-        }
 
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
             frontendUrl,
-            maybeNearupStatusUrlResult.value,
-            maybeContractHelperUrlResult.value
+            nearupInfo.getMaybeHostMachineUrl() || null,
+            contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
+            walletInfo.getMaybeHostMachineUrl() || null,
         );
 
         let stringResult;

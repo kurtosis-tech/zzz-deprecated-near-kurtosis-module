@@ -24,8 +24,8 @@ export function getPortNumFromHostMachinePortBinding(binding: PortBinding): Resu
 export function tryToFormHostMachineUrl(
         maybeHostMachinePortBinding: PortBinding | undefined,
         urlSupplier: (ipAddr: string, portNum: number) => string
-): Result<string | null, Error> {
-    let result: string | null;
+): Result<string | undefined, Error> {
+    let result: string | undefined = undefined;
     if (maybeHostMachinePortBinding !== undefined) {
         const hostMachinePortBinding: PortBinding = maybeHostMachinePortBinding!;
         const hostMachineIpAddr: string = hostMachinePortBinding.getInterfaceIp();
@@ -35,9 +35,6 @@ export function tryToFormHostMachineUrl(
         }
         const hostMachinePortNum: number = hostMachinePortNumResult.value;
         result = urlSupplier(hostMachineIpAddr, hostMachinePortNum);
-    } else {
-        // There was no Docker-external host machine port bound for the frontend, so we must give a null result to the user
-        result = null;
     }
     return ok(result);
 }
