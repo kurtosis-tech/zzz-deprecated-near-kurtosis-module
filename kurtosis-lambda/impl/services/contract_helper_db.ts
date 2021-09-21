@@ -16,11 +16,13 @@ const CONTRACT_HELPER_DB_STATIC_ENVVARS: Map<string, string> = new Map(Object.en
 }));
 const CONTRACT_HELPER_DB_ACCOUNTS_DEVELOPMENT_DB: string = "accounts_development";
 const CONTRACT_HELPER_DB_MAX_AVAILABILITY_CHECK_RETRIES: number = 10;
-const CONTRACT_HELPER_DB_MILLIS_BETWEEN_AVAILABILITY_CHECK_RETRIES: number = 1;
+const CONTRACT_HELPER_DB_MILLIS_BETWEEN_AVAILABILITY_CHECK_RETRIES: number = 1000;
 const CONTRACT_HELPER_DB_AVAILABILITY_CMD: string[] = [
-    "pg_isready",
+    "psql",
     "-U",
-    CONTRACT_HELPER_DB_POSTGRES_USER
+    CONTRACT_HELPER_DB_POSTGRES_USER,
+    "-c",
+    "\\l"
 ];
 
 export async function addContractHelperDb(networkCtx: NetworkContext): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
@@ -58,13 +60,13 @@ export async function addContractHelperDb(networkCtx: NetworkContext): Promise<R
         "-c",
         "create database " + CONTRACT_HELPER_DB_ACCOUNTS_DEVELOPMENT_DB + " with owner=" + CONTRACT_HELPER_DB_POSTGRES_USER
     ];
-    const createDatabaseResult: Result<[number, Uint8Array | string], Error> = await serviceCtx.execCommand(createDbCmd);
+    const createDatabaseResult: Result<[number, string], Error> = await serviceCtx.execCommand(createDbCmd);
     if (createDatabaseResult.isErr()) {
         return err(createDatabaseResult.error);
     }
-    const [exitCode, logOutput]: [number, Uint8Array | string] = createDatabaseResult.value;
+    const [exitCode, logOutput]: [number, string] = createDatabaseResult.value;
     if (exitCode != 0) {
-        return err(new Error("Command to create database '" + CONTRACT_HELPER_DB_ACCOUNTS_DEVELOPMENT_DB + "' returned nonzero exit code '" + exitCode + "' with logs: " + logOutput));
+        return err(new Error("Command to create database '" + createDbCmd.join(" ") + "' returned nonzero exit code '" + exitCode + "' with logs: " + logOutput));
     }
 
     return ok(addServiceResult.value);
@@ -72,13 +74,19 @@ export async function addContractHelperDb(networkCtx: NetworkContext): Promise<R
 
 async function waitForContractHelperDbToBecomeAvailable(serviceCtx: ServiceContext): Promise<Result<null, Error>> {
     for (let i: number = 0; i < CONTRACT_HELPER_DB_MAX_AVAILABILITY_CHECK_RETRIES; i++) {
-        const execCmdResult: Result<[number, Uint8Array | string], Error> = await serviceCtx.execCommand(CONTRACT_HELPER_DB_AVAILABILITY_CMD);
-        if (execCmdResult.isOk() && execCmdResult.value[0] == EXEC_COMMAND_SUCCESS_EXIT_CODE) {
-            return ok(null);
+        const execCmdResult: Result<[number, string], Error> = await serviceCtx.execCommand(CONTRACT_HELPER_DB_AVAILABILITY_CMD);
+        if (execCmdResult.isOk()) {
+            const [exitCode, logOutput] = execCmdResult.value;
+            if (exitCode == EXEC_COMMAND_SUCCESS_EXIT_CODE) {
+                return ok(null);
+            }
+            log.debug("Contract helper DB availability command '" + CONTRACT_HELPER_DB_AVAILABILITY_CMD + "' exited with code " + exitCode.toString() + " and logs:\n" + logOutput);
+        } else {
+            log.debug("Contract helper DB availability command '" + CONTRACT_HELPER_DB_AVAILABILITY_CMD + "' returned error:\n" + execCmdResult.error);
         }
         await new Promise(resolve => setTimeout(resolve, CONTRACT_HELPER_DB_MILLIS_BETWEEN_AVAILABILITY_CHECK_RETRIES));
     }
     return err(new Error(
-        "Contract helper DB didn't become available even after " + CONTRACT_HELPER_DB_MAX_AVAILABILITY_CHECK_RETRIES + " retries with " + CONTRACT_HELPER_DB_MILLIS_BETWEEN_AVAILABILITY_CHECK_RETRIES + "s between retries"
+        "Contract helper DB didn't become available even after " + CONTRACT_HELPER_DB_MAX_AVAILABILITY_CHECK_RETRIES + " retries with " + CONTRACT_HELPER_DB_MILLIS_BETWEEN_AVAILABILITY_CHECK_RETRIES + "ms between retries"
     ));
 }
