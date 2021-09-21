@@ -1,6 +1,12 @@
 # TBD
+### Features
+* Added `nearup` to start a local NEAR network inside the `nearup` Docker image
+
 ### Fixes
 * Pinned base Node image in Dockerfile to `node:14.17.6-alpine3.14`
+
+### Breaking Changes
+* Add a URL to the result for accessing the `nearcore` daemons started inside the `nearup` Docker container
 
 # 0.2.1
 ### Features
