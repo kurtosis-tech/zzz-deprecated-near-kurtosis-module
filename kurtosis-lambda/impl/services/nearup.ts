@@ -9,6 +9,12 @@ const NEARUP_IMAGE: string = "nearprotocol/nearup";
 const NEARUP_PORT_NUM: number = 3030;
 const NEARUP_DOCKER_PORT_DESC: string = NEARUP_PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 const CREATED_VALIDATOR_KEY_FILEPATH: string = "/root/.near/localnet/node0/validator_key.json";
+const GET_VALIDATOR_KEY_CMD: string[] = [
+    "cat",
+    CREATED_VALIDATOR_KEY_FILEPATH
+]
+const GET_VALIDATOR_KEY_MAX_RETRIES: number = 60;  // In local testing, it takes ~30s to generate the validator key
+const GET_VALIDATOR_KEY_MILLIS_BETWEEN_RETRIES: number = 1000;
 
 export class NearupInfo {
     private readonly networkInternalHostname: string;
@@ -73,19 +79,11 @@ export async function addNearupService(networkCtx: NetworkContext): Promise<Resu
     const [serviceCtx, hostPortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
     const maybeHostMachinePortBinding: PortBinding | undefined = hostPortBindings.get(NEARUP_DOCKER_PORT_DESC);
 
-    const getValidatorKeyCmd: string[] = [
-        "cat",
-        CREATED_VALIDATOR_KEY_FILEPATH
-    ]
-    const getValidatorKeyResult: Result<[number, string], Error> = await serviceCtx.execCommand(getValidatorKeyCmd);
+    const getValidatorKeyResult: Result<string, Error> = await getValidatorKey(serviceCtx);
     if (getValidatorKeyResult.isErr()) {
         return err(getValidatorKeyResult.error);
     }
-    const [getValidatorKeyExitCode, getValidatorKeyLogOutput]: [number, string] = getValidatorKeyResult.value;
-    if (getValidatorKeyExitCode !== EXEC_COMMAND_SUCCESS_EXIT_CODE) {
-        return err(new Error("Command to get validator key from file '" + CREATED_VALIDATOR_KEY_FILEPATH + "' failed with error code '" + getValidatorKeyExitCode + "' and log output: " + getValidatorKeyLogOutput));
-    }
-    const validatorKey: string = getValidatorKeyLogOutput;
+    const validatorKey: string = getValidatorKeyResult.value;
 
     const result: NearupInfo = new NearupInfo(
         NEARUP_SERVICE_ID,
@@ -95,4 +93,24 @@ export async function addNearupService(networkCtx: NetworkContext): Promise<Resu
     );
 
     return ok(result);
+}
+
+// The validator key will only be created when the localnet is up, so we'll need to retry a few times
+async function getValidatorKey(serviceCtx: ServiceContext): Promise<Result<string, Error>> {
+    for (let i: number = 0; i < GET_VALIDATOR_KEY_MAX_RETRIES; i++) {
+        const execCmdResult: Result<[number, string], Error> = await serviceCtx.execCommand(GET_VALIDATOR_KEY_CMD);
+        if (execCmdResult.isOk()) {
+            const [exitCode, logOutput] = execCmdResult.value;
+            if (exitCode == EXEC_COMMAND_SUCCESS_EXIT_CODE) {
+                return ok(logOutput);
+            }
+            log.debug(`Get validator key command '${GET_VALIDATOR_KEY_CMD}' exited with code '${exitCode}'' and logs:\n${logOutput}`);
+        } else {
+            log.debug(`Get validator key command '${GET_VALIDATOR_KEY_CMD}' returned error:\n${execCmdResult.error}`);
+        }
+        await new Promise(resolve => setTimeout(resolve, GET_VALIDATOR_KEY_MILLIS_BETWEEN_RETRIES));
+    }
+    return err(new Error(
+        `Couldn't get validator key even after ${GET_VALIDATOR_KEY_MAX_RETRIES} retries with ${GET_VALIDATOR_KEY_MILLIS_BETWEEN_RETRIES}ms between retries`
+    ));
 }

@@ -9,6 +9,7 @@ const PORT_NUM: number = 3000;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 // TODO Replace with something published to Dockerhub!!!
 const IMAGE: string = "near-contract-helper";
+// TODO Do I also need to set FUNDED_ACCOUNT_CREATOR_KEY, which shows up as an error in the contract-helper logs??
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
 // INDEXER_DB_CONNECTION=postgres://<user>:<password>@<domain>/near_indexer_for_wallet_testnet?ssl=require
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
@@ -62,10 +63,11 @@ export class ContractHelperServiceInfo {
 
 export async function addContractHelperService(
     networkCtx: NetworkContext,
-    contractHelperDbHostname: string,
-    contractHelperDbPortNum: number,
-    contractHelperDbUsername: string,
-    contractHelperDbUserPassword: string,
+    dbHostname: string,
+    dbPortNum: number,
+    dbUsername: string,
+    dbUserPassword: string,
+    dbName: string,
     nearupHostname: string,
     nearupPort: number,
     validatorKey: string,   // Created in the Nearup service
@@ -86,7 +88,8 @@ export async function addContractHelperService(
     )
     envvars.set(
         INDEXER_DB_CONNECTION_ENVVAR,
-        `postgres://${contractHelperDbUsername}:${contractHelperDbUserPassword}@${contractHelperDbHostname}:${contractHelperDbPortNum}/near_indexer_for_wallet_testnet?ssl=require`
+        // `postgres://${contractHelperDbUsername}:${contractHelperDbUserPassword}@${contractHelperDbHostname}:${contractHelperDbPortNum}/near_indexer_for_wallet_testnet?ssl=require`
+        `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`
     )
     envvars.set(
         NODE_RPC_URL_ENVVAR,

@@ -27,7 +27,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: AccountByPublicKeys; Type: TABLE; Schema: public; Owner: helper
+-- Name: AccountByPublicKeys; Type: TABLE; Schema: public; Owner: near
 --
 
 CREATE TABLE public."AccountByPublicKeys" (
@@ -39,10 +39,10 @@ CREATE TABLE public."AccountByPublicKeys" (
 );
 
 
-ALTER TABLE public."AccountByPublicKeys" OWNER TO helper;
+ALTER TABLE public."AccountByPublicKeys" OWNER TO near;
 
 --
--- Name: AccountByPublicKeys_id_seq; Type: SEQUENCE; Schema: public; Owner: helper
+-- Name: AccountByPublicKeys_id_seq; Type: SEQUENCE; Schema: public; Owner: near
 --
 
 CREATE SEQUENCE public."AccountByPublicKeys_id_seq"
@@ -54,17 +54,17 @@ CREATE SEQUENCE public."AccountByPublicKeys_id_seq"
     CACHE 1;
 
 
-ALTER TABLE public."AccountByPublicKeys_id_seq" OWNER TO helper;
+ALTER TABLE public."AccountByPublicKeys_id_seq" OWNER TO near;
 
 --
--- Name: AccountByPublicKeys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: helper
+-- Name: AccountByPublicKeys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: near
 --
 
 ALTER SEQUENCE public."AccountByPublicKeys_id_seq" OWNED BY public."AccountByPublicKeys".id;
 
 
 --
--- Name: Accounts; Type: TABLE; Schema: public; Owner: helper
+-- Name: Accounts; Type: TABLE; Schema: public; Owner: near
 --
 
 CREATE TABLE public."Accounts" (
@@ -76,10 +76,10 @@ CREATE TABLE public."Accounts" (
 );
 
 
-ALTER TABLE public."Accounts" OWNER TO helper;
+ALTER TABLE public."Accounts" OWNER TO near;
 
 --
--- Name: Accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: helper
+-- Name: Accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: near
 --
 
 CREATE SEQUENCE public."Accounts_id_seq"
@@ -91,17 +91,17 @@ CREATE SEQUENCE public."Accounts_id_seq"
     CACHE 1;
 
 
-ALTER TABLE public."Accounts_id_seq" OWNER TO helper;
+ALTER TABLE public."Accounts_id_seq" OWNER TO near;
 
 --
--- Name: Accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: helper
+-- Name: Accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: near
 --
 
 ALTER SEQUENCE public."Accounts_id_seq" OWNED BY public."Accounts".id;
 
 
 --
--- Name: EmailDomainBlacklist; Type: TABLE; Schema: public; Owner: helper
+-- Name: EmailDomainBlacklist; Type: TABLE; Schema: public; Owner: near
 --
 
 CREATE TABLE public."EmailDomainBlacklist" (
@@ -115,10 +115,10 @@ CREATE TABLE public."EmailDomainBlacklist" (
 );
 
 
-ALTER TABLE public."EmailDomainBlacklist" OWNER TO helper;
+ALTER TABLE public."EmailDomainBlacklist" OWNER TO near;
 
 --
--- Name: IdentityVerificationMethods; Type: TABLE; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods; Type: TABLE; Schema: public; Owner: near
 --
 
 CREATE TABLE public."IdentityVerificationMethods" (
@@ -134,10 +134,10 @@ CREATE TABLE public."IdentityVerificationMethods" (
 );
 
 
-ALTER TABLE public."IdentityVerificationMethods" OWNER TO helper;
+ALTER TABLE public."IdentityVerificationMethods" OWNER TO near;
 
 --
--- Name: IdentityVerificationMethods_id_seq; Type: SEQUENCE; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods_id_seq; Type: SEQUENCE; Schema: public; Owner: near
 --
 
 CREATE SEQUENCE public."IdentityVerificationMethods_id_seq"
@@ -149,17 +149,17 @@ CREATE SEQUENCE public."IdentityVerificationMethods_id_seq"
     CACHE 1;
 
 
-ALTER TABLE public."IdentityVerificationMethods_id_seq" OWNER TO helper;
+ALTER TABLE public."IdentityVerificationMethods_id_seq" OWNER TO near;
 
 --
--- Name: IdentityVerificationMethods_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: near
 --
 
 ALTER SEQUENCE public."IdentityVerificationMethods_id_seq" OWNED BY public."IdentityVerificationMethods".id;
 
 
 --
--- Name: RecoveryMethods; Type: TABLE; Schema: public; Owner: helper
+-- Name: RecoveryMethods; Type: TABLE; Schema: public; Owner: near
 --
 
 CREATE TABLE public."RecoveryMethods" (
@@ -176,10 +176,10 @@ CREATE TABLE public."RecoveryMethods" (
 );
 
 
-ALTER TABLE public."RecoveryMethods" OWNER TO helper;
+ALTER TABLE public."RecoveryMethods" OWNER TO near;
 
 --
--- Name: RecoveryMethods_id_seq; Type: SEQUENCE; Schema: public; Owner: helper
+-- Name: RecoveryMethods_id_seq; Type: SEQUENCE; Schema: public; Owner: near
 --
 
 CREATE SEQUENCE public."RecoveryMethods_id_seq"
@@ -191,17 +191,17 @@ CREATE SEQUENCE public."RecoveryMethods_id_seq"
     CACHE 1;
 
 
-ALTER TABLE public."RecoveryMethods_id_seq" OWNER TO helper;
+ALTER TABLE public."RecoveryMethods_id_seq" OWNER TO near;
 
 --
--- Name: RecoveryMethods_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: helper
+-- Name: RecoveryMethods_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: near
 --
 
 ALTER SEQUENCE public."RecoveryMethods_id_seq" OWNED BY public."RecoveryMethods".id;
 
 
 --
--- Name: SequelizeMeta; Type: TABLE; Schema: public; Owner: helper
+-- Name: SequelizeMeta; Type: TABLE; Schema: public; Owner: near
 --
 
 CREATE TABLE public."SequelizeMeta" (
@@ -209,38 +209,38 @@ CREATE TABLE public."SequelizeMeta" (
 );
 
 
-ALTER TABLE public."SequelizeMeta" OWNER TO helper;
+ALTER TABLE public."SequelizeMeta" OWNER TO near;
 
 --
--- Name: AccountByPublicKeys id; Type: DEFAULT; Schema: public; Owner: helper
+-- Name: AccountByPublicKeys id; Type: DEFAULT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."AccountByPublicKeys" ALTER COLUMN id SET DEFAULT nextval('public."AccountByPublicKeys_id_seq"'::regclass);
 
 
 --
--- Name: Accounts id; Type: DEFAULT; Schema: public; Owner: helper
+-- Name: Accounts id; Type: DEFAULT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."Accounts" ALTER COLUMN id SET DEFAULT nextval('public."Accounts_id_seq"'::regclass);
 
 
 --
--- Name: IdentityVerificationMethods id; Type: DEFAULT; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods id; Type: DEFAULT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."IdentityVerificationMethods" ALTER COLUMN id SET DEFAULT nextval('public."IdentityVerificationMethods_id_seq"'::regclass);
 
 
 --
--- Name: RecoveryMethods id; Type: DEFAULT; Schema: public; Owner: helper
+-- Name: RecoveryMethods id; Type: DEFAULT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."RecoveryMethods" ALTER COLUMN id SET DEFAULT nextval('public."RecoveryMethods_id_seq"'::regclass);
 
 
 --
--- Data for Name: AccountByPublicKeys; Type: TABLE DATA; Schema: public; Owner: helper
+-- Data for Name: AccountByPublicKeys; Type: TABLE DATA; Schema: public; Owner: near
 --
 
 COPY public."AccountByPublicKeys" (id, "accountId", "publicKey", "createdAt", "updatedAt") FROM stdin;
@@ -248,7 +248,7 @@ COPY public."AccountByPublicKeys" (id, "accountId", "publicKey", "createdAt", "u
 
 
 --
--- Data for Name: Accounts; Type: TABLE DATA; Schema: public; Owner: helper
+-- Data for Name: Accounts; Type: TABLE DATA; Schema: public; Owner: near
 --
 
 COPY public."Accounts" (id, "accountId", "createdAt", "updatedAt", "fundedAccountNeedsDeposit") FROM stdin;
@@ -256,7 +256,7 @@ COPY public."Accounts" (id, "accountId", "createdAt", "updatedAt", "fundedAccoun
 
 
 --
--- Data for Name: EmailDomainBlacklist; Type: TABLE DATA; Schema: public; Owner: helper
+-- Data for Name: EmailDomainBlacklist; Type: TABLE DATA; Schema: public; Owner: near
 --
 
 COPY public."EmailDomainBlacklist" ("domainName", "isTemporaryEmailService", "hasValidDNSMXRecord", error, "staleAt", "createdAt", "updatedAt") FROM stdin;
@@ -264,7 +264,7 @@ COPY public."EmailDomainBlacklist" ("domainName", "isTemporaryEmailService", "ha
 
 
 --
--- Data for Name: IdentityVerificationMethods; Type: TABLE DATA; Schema: public; Owner: helper
+-- Data for Name: IdentityVerificationMethods; Type: TABLE DATA; Schema: public; Owner: near
 --
 
 COPY public."IdentityVerificationMethods" (id, "identityKey", kind, "securityCode", claimed, "createdAt", "updatedAt", "uniqueIdentityKey") FROM stdin;
@@ -272,7 +272,7 @@ COPY public."IdentityVerificationMethods" (id, "identityKey", kind, "securityCod
 
 
 --
--- Data for Name: RecoveryMethods; Type: TABLE DATA; Schema: public; Owner: helper
+-- Data for Name: RecoveryMethods; Type: TABLE DATA; Schema: public; Owner: near
 --
 
 COPY public."RecoveryMethods" (id, "AccountId", kind, detail, "publicKey", "createdAt", "updatedAt", "securityCode", "requestId") FROM stdin;
@@ -280,7 +280,7 @@ COPY public."RecoveryMethods" (id, "AccountId", kind, detail, "publicKey", "crea
 
 
 --
--- Data for Name: SequelizeMeta; Type: TABLE DATA; Schema: public; Owner: helper
+-- Data for Name: SequelizeMeta; Type: TABLE DATA; Schema: public; Owner: near
 --
 
 COPY public."SequelizeMeta" (name) FROM stdin;
@@ -309,35 +309,35 @@ COPY public."SequelizeMeta" (name) FROM stdin;
 
 
 --
--- Name: AccountByPublicKeys_id_seq; Type: SEQUENCE SET; Schema: public; Owner: helper
+-- Name: AccountByPublicKeys_id_seq; Type: SEQUENCE SET; Schema: public; Owner: near
 --
 
 SELECT pg_catalog.setval('public."AccountByPublicKeys_id_seq"', 1, false);
 
 
 --
--- Name: Accounts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: helper
+-- Name: Accounts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: near
 --
 
 SELECT pg_catalog.setval('public."Accounts_id_seq"', 1, false);
 
 
 --
--- Name: IdentityVerificationMethods_id_seq; Type: SEQUENCE SET; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods_id_seq; Type: SEQUENCE SET; Schema: public; Owner: near
 --
 
 SELECT pg_catalog.setval('public."IdentityVerificationMethods_id_seq"', 1, false);
 
 
 --
--- Name: RecoveryMethods_id_seq; Type: SEQUENCE SET; Schema: public; Owner: helper
+-- Name: RecoveryMethods_id_seq; Type: SEQUENCE SET; Schema: public; Owner: near
 --
 
 SELECT pg_catalog.setval('public."RecoveryMethods_id_seq"', 1, false);
 
 
 --
--- Name: AccountByPublicKeys AccountByPublicKeys_pkey; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: AccountByPublicKeys AccountByPublicKeys_pkey; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."AccountByPublicKeys"
@@ -345,7 +345,7 @@ ALTER TABLE ONLY public."AccountByPublicKeys"
 
 
 --
--- Name: Accounts Accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: Accounts Accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."Accounts"
@@ -353,7 +353,7 @@ ALTER TABLE ONLY public."Accounts"
 
 
 --
--- Name: EmailDomainBlacklist EmailDomainBlacklist_pkey; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: EmailDomainBlacklist EmailDomainBlacklist_pkey; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."EmailDomainBlacklist"
@@ -361,7 +361,7 @@ ALTER TABLE ONLY public."EmailDomainBlacklist"
 
 
 --
--- Name: IdentityVerificationMethods IdentityVerificationMethods_pkey; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods IdentityVerificationMethods_pkey; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."IdentityVerificationMethods"
@@ -369,7 +369,7 @@ ALTER TABLE ONLY public."IdentityVerificationMethods"
 
 
 --
--- Name: RecoveryMethods RecoveryMethods_pkey; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: RecoveryMethods RecoveryMethods_pkey; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."RecoveryMethods"
@@ -377,7 +377,7 @@ ALTER TABLE ONLY public."RecoveryMethods"
 
 
 --
--- Name: SequelizeMeta SequelizeMeta_pkey; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: SequelizeMeta SequelizeMeta_pkey; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."SequelizeMeta"
@@ -385,7 +385,7 @@ ALTER TABLE ONLY public."SequelizeMeta"
 
 
 --
--- Name: RecoveryMethods constraint_publicKey_kind_detail; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: RecoveryMethods constraint_publicKey_kind_detail; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."RecoveryMethods"
@@ -393,7 +393,7 @@ ALTER TABLE ONLY public."RecoveryMethods"
 
 
 --
--- Name: RecoveryMethods unique_constraint; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: RecoveryMethods unique_constraint; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."RecoveryMethods"
@@ -401,7 +401,7 @@ ALTER TABLE ONLY public."RecoveryMethods"
 
 
 --
--- Name: IdentityVerificationMethods unique_constraint_identityKey_verification_method; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods unique_constraint_identityKey_verification_method; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."IdentityVerificationMethods"
@@ -409,7 +409,7 @@ ALTER TABLE ONLY public."IdentityVerificationMethods"
 
 
 --
--- Name: IdentityVerificationMethods unique_constraint_identity_verification_method; Type: CONSTRAINT; Schema: public; Owner: helper
+-- Name: IdentityVerificationMethods unique_constraint_identity_verification_method; Type: CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."IdentityVerificationMethods"
@@ -417,14 +417,14 @@ ALTER TABLE ONLY public."IdentityVerificationMethods"
 
 
 --
--- Name: accounts_account_id; Type: INDEX; Schema: public; Owner: helper
+-- Name: accounts_account_id; Type: INDEX; Schema: public; Owner: near
 --
 
 CREATE UNIQUE INDEX accounts_account_id ON public."Accounts" USING btree ("accountId");
 
 
 --
--- Name: RecoveryMethods RecoveryMethods_AccountId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: helper
+-- Name: RecoveryMethods RecoveryMethods_AccountId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: near
 --
 
 ALTER TABLE ONLY public."RecoveryMethods"

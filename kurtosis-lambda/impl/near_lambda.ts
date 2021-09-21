@@ -112,6 +112,7 @@ export class NearLambda implements KurtosisLambda {
             contractHelperDbInfo.getNetworkInternalPortNum(),
             contractHelperDbInfo.getDbUsername(),
             contractHelperDbInfo.getDbPassword(),
+            contractHelperDbInfo.getIndexerDb(),
             nearupInfo.getNetworkInternalHostname(),
             nearupInfo.getNetworkInternalPortNum(),
             nearupInfo.getValidatorKey()
