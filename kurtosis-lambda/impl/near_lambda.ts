@@ -7,6 +7,7 @@ import { DOCKER_PORT_PROTOCOL_SEPARATOR, getPortNumFromHostMachinePortBinding, T
 import { addNearupService, NearupInfo } from "./services/nearup";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
 import { addWallet, WalletInfo } from "./services/wallet";
+import { addIndexer, IndexerInfo } from "./services/indexer";
 
 
 export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
@@ -98,18 +99,32 @@ export class NearLambda implements KurtosisLambda {
         }
 
         // TODO handle custom params here
-
-        const addNearupServiceResult: Result<NearupInfo, Error> = await addNearupService(networkCtx)
-        if (addNearupServiceResult.isErr()) {
-            return err(addNearupServiceResult.error);
-        }
-        const nearupInfo: NearupInfo = addNearupServiceResult.value;
-
         const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(networkCtx)
         if (addContractHelperDbServiceResult.isErr()) {
             return err(addContractHelperDbServiceResult.error);
         }
         const contractHelperDbInfo: ContractHelperDbInfo = addContractHelperDbServiceResult.value;
+
+        const addIndexerResult: Result<IndexerInfo, Error> = await addIndexer(
+            networkCtx,
+            contractHelperDbInfo.getNetworkInternalHostname(),
+            contractHelperDbInfo.getNetworkInternalPortNum(),
+            contractHelperDbInfo.getDbUsername(),
+            contractHelperDbInfo.getDbPassword(),
+            contractHelperDbInfo.getIndexerDb()
+        );
+        if (addIndexerResult.isErr()) {
+            return err(addIndexerResult.error);
+        }
+        const indexerInfo: IndexerInfo = addIndexerResult.value;
+
+        /*
+        const addNearupServiceResult: Result<NearupInfo, Error> = await addNearupService(networkCtx)
+        if (addNearupServiceResult.isErr()) {
+            return err(addNearupServiceResult.error);
+        }
+        const nearupInfo: NearupInfo = addNearupServiceResult.value;
+        */
 
         const addContractHelperServiceResult: Result<ContractHelperServiceInfo, Error> = await addContractHelperService(
             networkCtx,
@@ -118,9 +133,9 @@ export class NearLambda implements KurtosisLambda {
             contractHelperDbInfo.getDbUsername(),
             contractHelperDbInfo.getDbPassword(),
             contractHelperDbInfo.getIndexerDb(),
-            nearupInfo.getNetworkInternalHostname(),
-            nearupInfo.getNetworkInternalPortNum(),
-            nearupInfo.getValidatorKey()
+            indexerInfo.getNetworkInternalHostname(),
+            indexerInfo.getNetworkInternalPortNum(),
+            indexerInfo.getValidatorKey()
         );
         if (addContractHelperServiceResult.isErr()) {
             return err(addContractHelperServiceResult.error);
@@ -129,7 +144,7 @@ export class NearLambda implements KurtosisLambda {
 
         const addWalletResult: Result<WalletInfo, Error> = await addWallet(
             networkCtx,
-            nearupInfo.getMaybeHostMachineUrl(),
+            indexerInfo.getMaybeHostMachineUrl(),
             contractHelperServiceInfo.getMaybeHostMachineUrl(),
             undefined, // TODO TODO TODO FIX THIS!!!
         );
@@ -174,7 +189,7 @@ export class NearLambda implements KurtosisLambda {
 
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
             frontendUrl,
-            nearupInfo.getMaybeHostMachineUrl() || null,
+            indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
             walletInfo.getMaybeHostMachineUrl() || null,
         );

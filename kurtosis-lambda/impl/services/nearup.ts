@@ -77,7 +77,6 @@ export async function addNearupService(networkCtx: NetworkContext): Promise<Resu
         return err(addServiceResult.error);
     }
     const [serviceCtx, hostPortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
-    const maybeHostMachinePortBinding: PortBinding | undefined = hostPortBindings.get(NEARUP_DOCKER_PORT_DESC);
 
     const getValidatorKeyResult: Result<string, Error> = await getValidatorKey(serviceCtx);
     if (getValidatorKeyResult.isErr()) {
@@ -85,6 +84,7 @@ export async function addNearupService(networkCtx: NetworkContext): Promise<Resu
     }
     const validatorKey: string = getValidatorKeyResult.value;
 
+    const maybeHostMachinePortBinding: PortBinding | undefined = hostPortBindings.get(NEARUP_DOCKER_PORT_DESC);
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
         maybeHostMachinePortBinding,
         (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`

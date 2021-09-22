@@ -38,6 +38,7 @@ Janky Things
         curl \
         llvm \
         clang \
+        libpq-dev \
         && rm -rf /var/lib/apt/lists/*
 
     COPY ./rust-toolchain /tmp/rust-toolchain
@@ -71,11 +72,22 @@ Janky Things
     EXPOSE 3030 24567
 
     RUN apt-get update -qq && apt-get install -y \
-        libssl-dev ca-certificates \
-        && rm -rf /var/lib/apt/lists/*
+            libpq-dev \
+            libssl-dev \
+            ca-certificates \
+            && rm -rf /var/lib/apt/lists/*
 
     COPY --from=build /tmp/build/indexer-explorer /usr/local/bin
 
-    CMD /usr/local/bin/indexer-explorer --home-dir /root/.near/localnet init --fast --chain-id localnet
+    # The DATABASE_URL needs to be set or the indexer will panic, but it only needs to be set to something when actually running
+    RUN DATABASE_URL="" /usr/local/bin/indexer-explorer --home-dir /root/.near/localnet init --fast --chain-id localnet
+
+    # The generated config doesn't work out of the box due to https://github.com/near/near-indexer-for-explorer/issues/166
+    RUN sed -i 's/"tracked_shards": \[\]/"tracked_shards": \[0\]/' /root/.near/localnet/config.json
+
+    # If the --store-genesis flag isn't set, the accounts in genesis won't get created in the DB which will lead to foreign key constraint violations
+    # See https://github.com/near/near-indexer-for-explorer/issues/167
+    CMD /usr/local/bin/indexer-explorer --home-dir /root/.near/localnet run --store-genesis sync-from-latest
     ```
-* The NEAR wallet is out-of-date, so I used the `build_image.sh` in the `near-wallet` repo to build an updated one
+* The NEAR explorer image takes _45 minutes_ to build! Definitely want to optimize this
+*  The NEAR wallet is out-of-date, so I used the `build_image.sh` in the `near-wallet` repo to build an updated one
