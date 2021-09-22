@@ -62,7 +62,13 @@ export async function addIndexer(
     dbName: string,
 ): Promise<Result<IndexerInfo, Error>> {
     log.info(`Adding indexer service...`);
-    const containerCreationConfig = new ContainerCreationConfigBuilder(IMAGE).build();
+    const usedPortsSet: Set<string> = new Set();
+    usedPortsSet.add(DOCKER_PORT_DESC)
+    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
+        IMAGE,
+    ).withUsedPorts(
+        usedPortsSet
+    ).build();
 
     const envvars: Map<string, string> = new Map();
     envvars.set(

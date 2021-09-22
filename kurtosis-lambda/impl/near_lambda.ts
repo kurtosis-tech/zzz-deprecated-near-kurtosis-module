@@ -8,55 +8,22 @@ import { addNearupService, NearupInfo } from "./services/nearup";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
 import { addWallet, WalletInfo } from "./services/wallet";
 import { addIndexer, IndexerInfo } from "./services/indexer";
+import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wamp";
+import { addExplorerBackendService } from "./services/explorer_backend";
+import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 
 
 export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
 
-const WAMP_BACKEND_SECRET: string = "back";
+const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 
 
-// Explorer WAMP
-const EXPLORER_WAMP_SERVICE_ID: ServiceID = "wamp";
-const EXPLORER_WAMP_IMAGE: string = "near-explorer_wamp";
-const EXPLORER_WAMP_PORT_NUM: number = 8080;
-const EXPLORER_WAMP_DOCKER_PORT_DESC: string = EXPLORER_WAMP_PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-const EXPLORER_WAMP_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "WAMP_NEAR_EXPLORER_PORT": EXPLORER_WAMP_PORT_NUM.toString(),
-    "WAMP_NEAR_EXPLORER_BACKEND_SECRET": WAMP_BACKEND_SECRET,
-}));
-
-// Explorer Backend
-const EXPLORER_BACKEND_SERVICE_ID: ServiceID = "backend";
-const EXPLORER_BACKEND_IMAGE: string = "near-explorer_backend";
-const EXPLORER_BACKEND_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "WAMP_NEAR_EXPLORER_URL": "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUM + "/ws",
-    "WAMP_NEAR_EXPLORER_BACKEND_SECRET": WAMP_BACKEND_SECRET,
-}));
-const EXPLORER_BACKEND_ENTRYPOINT_ARGS: string[] = [
-    "npm", 
-    "run", 
-    "start:testnet-with-indexer"
-];
-// TODO Mem limit??
 
 // Explorer Frontend
-const EXPLORER_FRONTEND_SERVICE_ID: ServiceID = "frontend";
-const EXPLORER_FRONTEND_IMAGE: string = "near-explorer_frontend";
-const EXPLORER_FRONTEND_PORT_NUM: number = 3000;
-const EXPLORER_FRONTEND_DOCKER_PORT_DESC: string = EXPLORER_FRONTEND_PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-const EXPLORER_FRONTEND_STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "PORT": EXPLORER_FRONTEND_PORT_NUM.toString(),
-    "NEAR_EXPLORER_DATA_SOURCE": "INDEXER_BACKEND",
-    // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
-    "NEAR_NETWORKS": "[{\"name\": \"testnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
-    "WAMP_NEAR_EXPLORER_INTERNAL_URL": "ws://" + EXPLORER_WAMP_SERVICE_ID + ":" + EXPLORER_WAMP_PORT_NUM + "/ws",
-}));
-const EXPLORER_FRONTEND_WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
 
 class NearLambdaResult {
     // When Kurtosis is in debug mode, the explorer frontend's port will be bound to a port on the user's machine so they can access the frontend
     //  even though the frontend is running inside Docker. When Kurtosis is not in debug mode, this will be null.
-    private readonly maybeHostMachineExplorerUrl: string | null;
 
     // Same thing - when debug mode is enabled, the nearup container will be bound to a port on the user's host machine
     private readonly maybeHostMachineNearNodeUrl: string | null;
@@ -65,16 +32,18 @@ class NearLambdaResult {
 
     private readonly maybeHostMachineWalletUrl: string | null;
 
+    private readonly maybeHostMachineExplorerFrontendUrl: string | null;
+
     constructor(
-        maybeHostMachineExplorerUrl: string | null, 
         maybeHostMachineNearNodeUrl: string | null,
         maybeHostMachineContractHelperUrl: string | null,
         maybeHostMachineWalletUrl: string | null,
+        maybeHostMachineExplorerFrontendUrl: string | null,
     ) {
-        this.maybeHostMachineExplorerUrl = maybeHostMachineExplorerUrl;
         this.maybeHostMachineNearNodeUrl = maybeHostMachineNearNodeUrl;
         this.maybeHostMachineContractHelperUrl = maybeHostMachineContractHelperUrl;
         this.maybeHostMachineWalletUrl = maybeHostMachineWalletUrl;
+        this.maybeHostMachineExplorerFrontendUrl = maybeHostMachineExplorerFrontendUrl;
     }
 }
 
@@ -142,6 +111,36 @@ export class NearLambda implements KurtosisLambda {
         }
         const contractHelperServiceInfo: ContractHelperServiceInfo = addContractHelperServiceResult.value;
 
+        const addExplorerWampResult: Result<ExplorerWampInfo, Error> = await addExplorerWampService(
+            networkCtx,
+            EXPLORER_WAMP_BACKEND_SHARED_SECRET
+        );
+        if (addExplorerWampResult.isErr()) {
+            return err(addExplorerWampResult.error);
+        }
+        const explorerWampInfo: ExplorerWampInfo = addExplorerWampResult.value;
+
+        const addExplorerBackendResult: Result<null, Error> = await addExplorerBackendService(
+            networkCtx,
+            explorerWampInfo.getInternalUrl(),
+            EXPLORER_WAMP_BACKEND_SHARED_SECRET,
+        );
+        if (addExplorerBackendResult.isErr()) {
+            return err(addExplorerBackendResult.error);
+        }
+
+        const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
+            networkCtx,
+            explorerWampInfo.getInternalUrl(),
+            explorerWampInfo.getMaybeHostMachineUrl()
+        );
+        if (addExplorerFrontendResult.isErr()) {
+            return err(addExplorerFrontendResult.error);
+        }
+        const explorerFrontendInfo: ExplorerFrontendInfo = addExplorerFrontendResult.value;
+
+        // TODO Uncomment when wallet is configurable at runtime
+        /*
         const addWalletResult: Result<WalletInfo, Error> = await addWallet(
             networkCtx,
             indexerInfo.getMaybeHostMachineUrl(),
@@ -152,46 +151,14 @@ export class NearLambda implements KurtosisLambda {
             return err(addWalletResult.error);
         }
         const walletInfo: WalletInfo = addWalletResult.value;
-
-        // TODO UNCOMMENT WHEN NEARCORE IS WORKING
-        /*
-        const addWampServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await NearLambda.addWampService(networkCtx)
-        if (addWampServiceResult.isErr()) {
-            return err(addWampServiceResult.error);
-        }
-        const [wampServiceCtx, wampHostPortBindings] = addWampServiceResult.value;
-        const wampHostMachinePortBindingOpt: PortBinding | undefined = wampHostPortBindings.get(EXPLORER_WAMP_DOCKER_PORT_DESC);
-
-        const addBackendServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await NearLambda.addBackendService(networkCtx)
-        if (addBackendServiceResult.isErr()) {
-            return err(addBackendServiceResult.error);
-        }
-        const [backendServiceCtx, backendHostPortBindings] = addBackendServiceResult.value;
-
-        const addFrontendServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await NearLambda.addFrontendService(networkCtx, wampHostMachinePortBindingOpt)
-        if (addFrontendServiceResult.isErr()) {
-            return err(addFrontendServiceResult.error);
-        }
-        const [frontendServiceCtx, frontendHostPortBindings] = addFrontendServiceResult.value;
-        const formFrontendUrlResult: Result<string | null, Error> = NearLambda.tryToFormHostMachineUrl(
-            EXPLORER_FRONTEND_DOCKER_PORT_DESC, 
-            frontendHostPortBindings,
-            (ipAddr: string, portNum: number) => "http://" + ipAddr + ":" + portNum.toString()
-        );
-        if (formFrontendUrlResult.isErr()) {
-            return err(formFrontendUrlResult.error);
-        }
-        const frontendUrl: string | null = formFrontendUrlResult.value;
         */
-        const frontendUrl: string | null = null;
-
-
 
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
-            frontendUrl,
             indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
-            walletInfo.getMaybeHostMachineUrl() || null,
+            // walletInfo.getMaybeHostMachineUrl() || null,
+            null, // TODO REPLACE WITH ACTUAL WALLET HOST MACHINE URL
+            explorerFrontendInfo.getMaybeHostMachineUrl() || null,
         );
 
         let stringResult;
@@ -216,87 +183,9 @@ export class NearLambda implements KurtosisLambda {
     // ====================================================================================================
 
 
-    private static async addWampService(networkCtx: NetworkContext): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
-        const usedPortsSet: Set<string> = new Set();
-        usedPortsSet.add(EXPLORER_WAMP_DOCKER_PORT_DESC)
-        const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-            EXPLORER_WAMP_IMAGE,
-        ).withUsedPorts(
-            usedPortsSet,
-        ).build();
-
-        const envVars: Map<string, string> = new Map(EXPLORER_WAMP_STATIC_ENVVARS);
-        const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-            const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-                envVars
-            ).build();
-            return ok(result);
-        }
-        
-        const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(EXPLORER_WAMP_SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
-        if (addServiceResult.isErr()) {
-            return err(addServiceResult.error);
-        }
-        return ok(addServiceResult.value);
-    }
 
 
 
-    private static async addBackendService(networkCtx: NetworkContext): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
-        const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-            EXPLORER_BACKEND_IMAGE,
-        ).build();
 
-        const envVars: Map<string, string> = new Map(EXPLORER_BACKEND_STATIC_ENVVARS);
-        const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-            const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-                envVars
-            ).withEntrypointOverride(
-                EXPLORER_BACKEND_ENTRYPOINT_ARGS
-            ).build();
-            return ok(result);
-        }
-        
-        const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(EXPLORER_BACKEND_SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
-        if (addServiceResult.isErr()) {
-            return err(addServiceResult.error);
-        }
-        return ok(addServiceResult.value);
-    }
-
-    private static async addFrontendService(networkCtx: NetworkContext, wampHostMachinePortBindingOpt?: PortBinding): Promise<Result<[ServiceContext, Map<string, PortBinding>], Error>> {
-        const usedPortsSet: Set<string> = new Set();
-        usedPortsSet.add(EXPLORER_FRONTEND_DOCKER_PORT_DESC)
-        const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-            EXPLORER_FRONTEND_IMAGE,
-        ).withUsedPorts(
-            usedPortsSet,
-        ).build();
-
-
-        const envVars: Map<string, string> = new Map(EXPLORER_FRONTEND_STATIC_ENVVARS);
-        // If there's no host machine WAMP port (i.e. Kurtosis isn't running in debug mode) then we can't set the WAMP Docker-external variable
-        if (wampHostMachinePortBindingOpt !== undefined) {
-            const wampHostMachinePortNumResult: Result<number, Error> = getPortNumFromHostMachinePortBinding(wampHostMachinePortBindingOpt);
-            if (wampHostMachinePortNumResult.isErr()) {
-                return err(wampHostMachinePortNumResult.error);
-            }
-            const wampHostMachinePortNum: number = wampHostMachinePortNumResult.value;
-            const wampHostMachineInterfaceIp: string = wampHostMachinePortBindingOpt.getInterfaceIp();
-            envVars.set(EXPLORER_FRONTEND_WAMP_EXTERNAL_URL_ENVVAR, "ws://" + wampHostMachineInterfaceIp + ":" + wampHostMachinePortNum.toString() + "/ws");  // This is the WS port on the user's local machine, which we'll only know when we start the WAMP service
-        }
-        const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-            const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-                envVars
-            ).build();
-            return ok(result);
-        }
-        
-        const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(EXPLORER_FRONTEND_SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
-        if (addServiceResult.isErr()) {
-            return err(addServiceResult.error);
-        }
-        return ok(addServiceResult.value);
-    }
 
 }

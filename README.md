@@ -4,6 +4,15 @@ This repository contains a [Kurtosis Lambda](https://docs.kurtosistech.com/advan
 
 Janky Things
 ------------
+### Contract Helper DB
+* We create databases for the contract-helper and the indexer from the result of:
+    1. Starting a Postgres locally
+    1. Cloning the contract-helper Git repo
+    1. Running the contract helper migration locally
+    1. Cloning the indexer-for-explorer Git repo
+    1. Running the indexer-for-explorer migration locally (which requires installing `diesel`)
+
+### Contract Helper App
 * There's no working contract-helper Docker image
     * The Dockerfile needed to be set to:
         ```
@@ -17,12 +26,8 @@ Janky Things
         CMD ["sh", "-c",  "yarn start-no-env"]
         ```
       and the `package.json` needed this added: `    "start-no-env": "supervisor app",`
-* We create databases for the contract-helper and the indexer from the result of:
-    1. Starting a Postgres locally
-    1. Cloning the contract-helper Git repo
-    1. Running the contract helper migration locally
-    1. Cloning the indexer-for-explorer Git repo
-    1. Running the indexer-for-explorer migration locally (which requires installing `diesel`)
+
+### Indexer
 * There was no indexer-for-explorer image, so I had to make one:
     ```
     # syntax=docker/dockerfile-upstream:experimental
@@ -89,5 +94,9 @@ Janky Things
     # See https://github.com/near/near-indexer-for-explorer/issues/167
     CMD /usr/local/bin/indexer-explorer --home-dir /root/.near/localnet run --store-genesis sync-from-latest
     ```
-* The NEAR explorer image takes _45 minutes_ to build! Definitely want to optimize this
-*  The NEAR wallet is out-of-date, so I used the `build_image.sh` in the `near-wallet` repo to build an updated one
+* The NEAR indexer-for-explorer image takes _45 minutes_ to build! Definitely want to optimize this
+* The config files that are `init`'d by the indexer need `sed`'ing to fix
+
+### Wallet
+* The NEAR wallet is out-of-date, so I used the `build_image.sh` in the `near-wallet` repo to build an updated one
+* The NEAR wallet uses Parcel, which requires a `.env` file that only picks up environment variables at BUILD time, which requires `docker exec`ing an `npm run build` AFTER the container starts!!! This takes a _very_ long time
