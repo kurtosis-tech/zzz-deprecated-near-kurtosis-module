@@ -1,5 +1,21 @@
 # TBD
 
+# 0.3.0
+### Features
+* Start:
+    * A local NEAR node running the indexer
+    * The contract helper service
+    * The explorer backend, WAMP, and frontend
+
+### Fixes
+* Pinned base Node image in Dockerfile to `node:14.17.6-alpine3.14`
+
+### Changes
+* Upgrade to `lambda-api-lib` 0.9.0
+
+### Breaking Changes
+* Completely revamp the return type to provide frontend URLs for various services
+
 # 0.2.1
 ### Features
 * Build Docker image named `kurtosistech/near-kurtosis-lambda`

@@ -1,4 +1,4 @@
-FROM node:14.17-alpine AS builder
+FROM node:14.17.6-alpine3.14 AS builder
 
 WORKDIR /build
 
@@ -9,6 +9,9 @@ RUN yarn install
 
 # Copy the code into the container
 COPY . .
+
+# Copy local static files inside the Kurtosis Lambda image
+COPY kurtosis-lambda/static_files /static-files
 
 RUN yarn build
 
