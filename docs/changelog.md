@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Fix typo in Docker image-publishing CI job
 
 # 0.3.0
 ### Features
