@@ -92,6 +92,7 @@ Janky Things
 * We flipped off the `--release` flag because it was sooo slowwww
     * The NEAR indexer-for-explorer image with `--release` on takes _45 minutes_ to build! Definitely want to optimize this
 * The config files that are `init`'d by the indexer need `sed`'ing to fix
+* The indexer image is 4GB big; it should be built into a multistage build (will require splitting up the migration/diesel steps into its own image)
 
 ### Wallet
 * The NEAR wallet is out-of-date, so I used the `build_image.sh` in the `near-wallet` repo to build an updated one
