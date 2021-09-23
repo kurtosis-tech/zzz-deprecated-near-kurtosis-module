@@ -5,8 +5,7 @@ import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PRO
 import { ContainerRunConfigSupplier, } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "frontend";
-// TODO replace with something from Dockerhub
-const IMAGE: string = "near-explorer_frontend";
+const IMAGE: string = "kurtosistech/near-explorer_frontend";
 const PORT_NUM: number = 3000;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 const WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";

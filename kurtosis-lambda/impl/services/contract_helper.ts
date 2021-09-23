@@ -7,13 +7,9 @@ import { ContainerRunConfigSupplier, } from "../near_lambda";
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_NUM: number = 3000;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-// TODO Replace with something published to Dockerhub!!!
-const IMAGE: string = "near-contract-helper";
-// TODO Do I also need to set FUNDED_ACCOUNT_CREATOR_KEY, which shows up as an error in the contract-helper logs??
+const IMAGE: string = "kurtosistech/near-contract-helper";
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
-// INDEXER_DB_CONNECTION=postgres://<user>:<password>@<domain>/near_indexer_for_wallet_testnet?ssl=require
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
-// NODE_URL=http://0.0.0.0:3030 # from ~/.near/config.json#rpc.addr – for production, use https://rpc.testnet.near.org
 const NODE_RPC_URL_ENVVAR: string = "NODE_URL";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "MAIL_HOST": "smtp.ethereal.email",

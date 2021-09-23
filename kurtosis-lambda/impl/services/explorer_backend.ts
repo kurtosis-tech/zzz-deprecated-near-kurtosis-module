@@ -6,7 +6,7 @@ import { ContainerRunConfigSupplier, } from "../near_lambda";
 
 // Explorer Backend
 const SERVICE_ID: ServiceID = "backend";
-const IMAGE: string = "near-explorer_backend";
+const IMAGE: string = "kurtosistech/near-explorer_backend";
 const NEAR_NODE_RPC_URL_ENVVAR: string = "NEAR_RPC_URL";
 
 const NEAR_INDEXER_DATABASE_USERNAME_ENVVAR: string = "NEAR_INDEXER_DATABASE_USERNAME";

@@ -5,8 +5,7 @@ import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PRO
 import { ContainerRunConfigSupplier, } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "indexer"
-// TODO Replace with something published to Dockerhub!!!
-const IMAGE: string = "near-indexer-for-explorer";
+const IMAGE: string = "kurtosistech/near-indexer-for-explorer";
 const PORT_NUM: number = 3030;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 const DATABASE_URL_ENVVAR = "DATABASE_URL";

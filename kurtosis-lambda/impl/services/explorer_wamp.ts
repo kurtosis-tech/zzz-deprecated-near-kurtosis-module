@@ -5,8 +5,7 @@ import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PRO
 import { ContainerRunConfigSupplier, } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "wamp";
-// TODO replace with something published to Dockerhub
-const IMAGE: string = "near-explorer_wamp";
+const IMAGE: string = "kurtosistech/near-explorer_wamp";
 const PORT_NUM: number = 8080;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
