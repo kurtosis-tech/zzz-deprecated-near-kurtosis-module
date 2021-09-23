@@ -1,8 +1,12 @@
 version: 2.1
 
 orbs:
-  npm-publisher: uraway/npm-publisher@0.2.0
   kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.0
+
+executors:
+  ubuntu_vm:
+    machine:
+      image: ubuntu-1604:202007-01
 
 # NOTE: Because CircleCI jobs run on separate machines from each other, we duplicate steps (like checkout) between jobs. This is because doing the "correct" DRY
 #  refactoring of, "one job for checkout, one job for build Docker image, etc." would require a) persisting files between jobs and b) persisting Docker images between
@@ -10,9 +14,8 @@ orbs:
 #  images), so we run everything inside a single job.
 # See also: https://discuss.circleci.com/t/can-docker-images-be-preserved-between-jobs-in-a-workflow-without-a-manual-load-save/23388/12
 jobs:
-  check_golang:
-    docker:
-      - image: cimg/go:1.15.13
+  check_code:
+    executor: ubuntu_vm
     steps:
       - checkout
 
@@ -23,32 +26,21 @@ jobs:
             circleci-agent step halt
           fi
 
-      - run: golang/scripts/build.sh
-
-  check_typescript:
-    docker:
-      - image: cimg/node:14.17.1
+      - run: bash ./scripts/build.sh
+  push_artifacts:
+    executor: ubuntu_vm
     steps:
       - checkout
 
-      # If the only changes are to the docs, don't run the slow (and expensive) code checks
-      # `git diff --exit-code` returns 0 exit code if no changes, and 1 if changes
+      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
+      - run: bash ./scripts/build.sh
+
       - run: |
-          if git --no-pager diff --exit-code origin/develop...HEAD -- . ':!docs'; then
-            circleci-agent step halt
-          fi
-
-      - run: typescript/scripts/build.sh
-
-  publish_typescript:
-    docker:
-      - image: cimg/node:14.17.1
-    steps:
-      - checkout
-      - run: typescript/scripts/build.sh
-      - npm-publisher/publish-from-package-version:
-          package-path: typescript
-          publish-token-variable: NPMJS_AUTH_TOKEN
+          set -euo pipefail
+          version_to_publish="$(scripts/get-docker-images-tag.sh)"
+          echo "Version that will be published: ${version_to_publish}"
+          image_name="kurtosistech/near-kurtosis-lambda:${version_to_publish}"
+          docker push "${image_name}"
 
 workflows:
   build:
@@ -61,13 +53,7 @@ workflows:
               ignore:
                 - develop
                 - master
-      - check_golang:
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
-      - check_typescript:
+      - check_code:
           filters:
             branches:
               ignore:
@@ -76,13 +62,12 @@ workflows:
       # -- End PR check jobs ---------------------------------------
 
       # -- Artifact-publishing jobs --------------------------------
-      # TODO UNCOMMENT WHEN READY
-      #- publish_typescript:
-      #    context:
-      #      - npmjs-user
-      #    filters:
-      #      branches:
-      #        ignore: /.*/
-      #      tags:
-      #        only: /^[0-9]+\.[0-9]+\.[0-9]+$/
+      - push_artifacts:
+          context:
+            - docker-user
+          filters:
+            branches:
+              ignore: /.*/
+            tags: 
+              only: /^[0-9]+\.[0-9]+\.[0-9]+$/
       # -- End artifact-publishing jobs ----------------------------
