@@ -3,6 +3,11 @@ version: 2.1
 orbs:
   kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.0
 
+executors:
+  ubuntu_vm:
+    machine:
+      image: ubuntu-1604:202007-01
+
 # NOTE: Because CircleCI jobs run on separate machines from each other, we duplicate steps (like checkout) between jobs. This is because doing the "correct" DRY
 #  refactoring of, "one job for checkout, one job for build Docker image, etc." would require a) persisting files between jobs and b) persisting Docker images between
 #  jobs. Both are annoying (saving/loading workspaces require re-downloading the workspace over the network, and there doesn't seem to be a good way to do Docker
@@ -22,6 +27,20 @@ jobs:
           fi
 
       - run: bash ./scripts/build.sh
+  push_artifacts:
+    executor: ubuntu_vm
+    steps:
+      - checkout
+
+      - run: echo "${DOCKER_PASSWORD}" | docker login -u ${DOCKER_USERNAME} --password-stdin
+      - run: bash ./scripts/build.sh
+
+      - run: |
+          set -euo pipefail
+          version_to_publish="$(scripts/get-docker-images-tag.sh)"
+          echo "Version that will be published: ${version_to_publish}"
+          image_name="kurtosistech/near-kurtosis-lambda:${version_to_publish}"
+          docker push "${image_name}"
 
 workflows:
   build:
