@@ -1,4 +1,6 @@
 # TBD
+
+# 0.3.0
 ### Features
 * Start:
     * A local NEAR node running the indexer
