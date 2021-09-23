@@ -17,9 +17,7 @@ export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths
 
 const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 
-
-
-// Explorer Frontend
+const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
 class NearLambdaResult {
     // When Kurtosis is in debug mode, the explorer frontend's port will be bound to a port on the user's machine so they can access the frontend
@@ -30,6 +28,8 @@ class NearLambdaResult {
 
     private readonly maybeHostMachineContractHelperUrl: string | null;
 
+    private readonly maybeHostMachineExplorerWampUrl: string | null;
+
     private readonly maybeHostMachineWalletUrl: string | null;
 
     private readonly maybeHostMachineExplorerFrontendUrl: string | null;
@@ -37,11 +37,13 @@ class NearLambdaResult {
     constructor(
         maybeHostMachineNearNodeUrl: string | null,
         maybeHostMachineContractHelperUrl: string | null,
+        maybeHostMachineExplorerWampUrl: string | null,
         maybeHostMachineWalletUrl: string | null,
         maybeHostMachineExplorerFrontendUrl: string | null,
     ) {
         this.maybeHostMachineNearNodeUrl = maybeHostMachineNearNodeUrl;
         this.maybeHostMachineContractHelperUrl = maybeHostMachineContractHelperUrl;
+        this.maybeHostMachineExplorerWampUrl = maybeHostMachineExplorerWampUrl;
         this.maybeHostMachineWalletUrl = maybeHostMachineWalletUrl;
         this.maybeHostMachineExplorerFrontendUrl = maybeHostMachineExplorerFrontendUrl;
     }
@@ -122,8 +124,15 @@ export class NearLambda implements KurtosisLambda {
 
         const addExplorerBackendResult: Result<null, Error> = await addExplorerBackendService(
             networkCtx,
+            indexerInfo.getNetworkInternalHostname(),
+            indexerInfo.getNetworkInternalPortNum(),
+            contractHelperDbInfo.getDbUsername(),
+            contractHelperDbInfo.getDbPassword(),
+            contractHelperDbInfo.getNetworkInternalHostname(),
+            contractHelperDbInfo.getIndexerDb(),
             explorerWampInfo.getInternalUrl(),
             EXPLORER_WAMP_BACKEND_SHARED_SECRET,
+            EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
         );
         if (addExplorerBackendResult.isErr()) {
             return err(addExplorerBackendResult.error);
@@ -132,7 +141,8 @@ export class NearLambda implements KurtosisLambda {
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
             networkCtx,
             explorerWampInfo.getInternalUrl(),
-            explorerWampInfo.getMaybeHostMachineUrl()
+            explorerWampInfo.getMaybeHostMachineUrl(),
+            EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
         );
         if (addExplorerFrontendResult.isErr()) {
             return err(addExplorerFrontendResult.error);
@@ -156,6 +166,7 @@ export class NearLambda implements KurtosisLambda {
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
             indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
+            explorerWampInfo.getMaybeHostMachineUrl() || null,
             // walletInfo.getMaybeHostMachineUrl() || null,
             null, // TODO REPLACE WITH ACTUAL WALLET HOST MACHINE URL
             explorerFrontendInfo.getMaybeHostMachineUrl() || null,

@@ -11,11 +11,12 @@ const PORT_NUM: number = 3000;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 const WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";
 const WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
+const NEAR_NETWORKS_ENVVAR: string = "NEAR_NETWORKS";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "PORT": PORT_NUM.toString(),
-    "NEAR_EXPLORER_DATA_SOURCE": "INDEXER_BACKEND",
+    "NEAR_EXPLORER_DATA_SOURCE": "INDEXER_BACKEND", // Tells the frontend to use the indexer backend, rather than the legacy sqlite backend
     // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
-    "NEAR_NETWORKS": "[{\"name\": \"testnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
+    // "NEAR_NETWORKS": "[{\"name\": \"localnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
 }));
 
 export class ExplorerFrontendInfo {
@@ -36,7 +37,7 @@ export async function addExplorerFrontendService(
     networkCtx: NetworkContext, 
     wampInternalUrl: string,
     maybeHostMachineWampUrl: string | undefined,
-    // wampHostMachinePortBindingOpt?: PortBinding,
+    networkName: string,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
@@ -51,6 +52,10 @@ export async function addExplorerFrontendService(
     envVars.set(
         WAMP_INTERNAL_URL_ENVVAR,
         wampInternalUrl,
+    )
+    envVars.set(
+        NEAR_NETWORKS_ENVVAR,
+        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
     )
     // If there's no host machine WAMP URL (i.e. Kurtosis isn't running in debug mode) then we can't set the
     //  WAMP Docker-external variable

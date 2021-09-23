@@ -149,6 +149,9 @@ export async function addContractHelperDb(networkCtx: NetworkContext): Promise<R
             ));
         }
 
+        // TODO remove???
+
+        /*
         // Next, populate it with data
         const maybeInitializationSqlFilepathOnSvc: string | undefined = staticFileFilepathsOnSvc.get(initializerStaticFileId);
         if (maybeInitializationSqlFilepathOnSvc === undefined) {
@@ -173,6 +176,7 @@ export async function addContractHelperDb(networkCtx: NetworkContext): Promise<R
                 `Command '${initializeDbCmd.join(" ")}' to initialize database '${database}' returned error exit code '${initializeDbExitCode}' with logs:\n${initializeDbLogOutput}`
             ));
         }
+        */
     }
 
 
