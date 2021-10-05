@@ -2,7 +2,6 @@ import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Sha
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
-import { ContainerRunConfigSupplier, } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_NUM: number = 3000;
