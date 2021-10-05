@@ -1,3 +1,4 @@
+/*
 import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationConfigBuilder, ContainerRunConfig, ContainerRunConfigBuilder, StaticFileID, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
@@ -123,3 +124,4 @@ async function getValidatorKey(serviceCtx: ServiceContext): Promise<Result<strin
         `Couldn't get validator key even after ${GET_VALIDATOR_KEY_MAX_RETRIES} retries with ${GET_VALIDATOR_KEY_MILLIS_BETWEEN_RETRIES}ms between retries`
     ));
 }
+*/
