@@ -1,4 +1,6 @@
 # TBD
+
+# 0.3.3
 ### Features
 * Upgrade to [Lambda API Lib 0.9.2](https://github.com/kurtosis-tech/kurtosis-lambda-api-lib/blob/develop/docs/changelog.md#092)
 
