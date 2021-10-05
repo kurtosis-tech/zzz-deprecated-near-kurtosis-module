@@ -1,3 +1,4 @@
+/*
 import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationConfigBuilder, ContainerRunConfig, ContainerRunConfigBuilder, StaticFileID, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
@@ -99,3 +100,4 @@ export async function addWallet(
 
     return ok(result);
 }
+*/
