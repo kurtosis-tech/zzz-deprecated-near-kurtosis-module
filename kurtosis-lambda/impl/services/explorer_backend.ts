@@ -1,8 +1,8 @@
-import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationConfigBuilder, ContainerRunConfig, ContainerRunConfigBuilder, StaticFileID, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
-import { ContainerRunConfigSupplier, } from "../near_lambda";
+import { ContainerConfigSupplier } from "../near_lambda";
 
 // Explorer Backend
 const SERVICE_ID: ServiceID = "backend";
@@ -35,10 +35,6 @@ export async function addExplorerBackendService(
     sharedWampBackendSecret: string,
     networkName: string,
 ): Promise<Result<null, Error>> {
-    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-        IMAGE,
-    ).build();
-
     const envVars: Map<string, string> = new Map([
         [NETWORK_NAME_ENVVAR, networkName],
         [NEAR_INDEXER_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
@@ -52,14 +48,17 @@ export async function addExplorerBackendService(
     for (let [key, value] of STATIC_ENVVARS.entries()) {
         envVars.set(key, value);
     }
-    const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-        const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
+
+    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
+        const result: ContainerConfig = new ContainerConfigBuilder(
+            IMAGE,
+        ).withEnvironmentVariableOverrides(
             envVars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
+    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }

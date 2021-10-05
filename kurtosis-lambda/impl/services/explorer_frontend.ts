@@ -1,8 +1,8 @@
-import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationConfigBuilder, ContainerRunConfig, ContainerRunConfigBuilder, StaticFileID, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
-import { ContainerRunConfigSupplier, } from "../near_lambda";
+import { ContainerConfigSupplier } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "frontend";
 const IMAGE: string = "kurtosistech/near-explorer_frontend";
@@ -40,12 +40,6 @@ export async function addExplorerFrontendService(
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
-    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-        IMAGE,
-    ).withUsedPorts(
-        usedPortsSet,
-    ).build();
-
 
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
@@ -64,14 +58,19 @@ export async function addExplorerFrontendService(
             maybeHostMachineWampUrl,
         );
     }
-    const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-        const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-            envVars
+
+    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
+        const result: ContainerConfig = new ContainerConfigBuilder(
+            IMAGE,
+        ).withUsedPorts(
+            usedPortsSet,
+        ).withEnvironmentVariableOverrides(
+                envVars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
+    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }

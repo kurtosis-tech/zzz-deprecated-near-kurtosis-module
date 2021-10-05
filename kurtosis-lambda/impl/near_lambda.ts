@@ -1,19 +1,18 @@
-import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationConfigBuilder, ContainerRunConfig, ContainerRunConfigBuilder, StaticFileID, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { NetworkContext, SharedPath, ContainerConfig } from "kurtosis-core-api-lib";
 import { KurtosisLambda } from "kurtosis-lambda-api-lib";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
 import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, getPortNumFromHostMachinePortBinding, TCP_PROTOCOL, tryToFormHostMachineUrl } from "./consts";
-import { addNearupService, NearupInfo } from "./services/nearup";
+// import { addNearupService, NearupInfo } from "./services/nearup";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
-import { addWallet, WalletInfo } from "./services/wallet";
+// import { addWallet, WalletInfo } from "./services/wallet";
 import { addIndexer, IndexerInfo } from "./services/indexer";
 import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wamp";
 import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 
-
-export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
+export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
 const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 

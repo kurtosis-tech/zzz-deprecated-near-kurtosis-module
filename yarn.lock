@@ -584,24 +584,24 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
-kurtosis-core-api-lib@0.16.0:
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/kurtosis-core-api-lib/-/kurtosis-core-api-lib-0.16.0.tgz#8fd37fe26c157ee7ed71bcec437c1bfaeb9da9d7"
-  integrity sha512-mn0CC0k/fmcy4IsqABRNVIdKTjM8ljgaAvH+TfrpucfPntfCwGc67tvNYPiHjUajyLXxdnGlGeBYfqeaDSQPNg==
+kurtosis-core-api-lib@0.17.1:
+  version "0.17.1"
+  resolved "https://registry.yarnpkg.com/kurtosis-core-api-lib/-/kurtosis-core-api-lib-0.17.1.tgz#34074f89db75edfc8f3d91f663f5c11230ece77a"
+  integrity sha512-mcCT677n5mO8xwQwrKXySROw2SZ3UKo4EWehI7lVElEFtbKE4t46Z0AWK65fg3Oo7cNHIR+u2oa+PvEjA05s9A==
   dependencies:
     google-protobuf "^3.17.3"
     grpc "^1.24.11"
     loglevel "^1.7.1"
     neverthrow "^4.2.2"
 
-kurtosis-lambda-api-lib@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/kurtosis-lambda-api-lib/-/kurtosis-lambda-api-lib-0.9.0.tgz#ad6843c58a0ad348880f30a6caea2f5a22c94cf7"
-  integrity sha512-XQtwLnTE7BQ5JvHjwdc4r8srtwqIf05fkaxst9ekDvm7PpGCnDIaqjK/olZ4y+G6HayqeQy9eLhE2oMfkPiUsA==
+kurtosis-lambda-api-lib@0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/kurtosis-lambda-api-lib/-/kurtosis-lambda-api-lib-0.9.1.tgz#9798a236af4b25e8fed97abb358302356324c7f6"
+  integrity sha512-V1zZC3udlZj1vrQhu+Fq5hiilQWwJ0shSllAZFdlI57xL0Tw91HlgYFwZohw5lOXDYKUqopX8fDayCl3mV+AEg==
   dependencies:
     google-protobuf "^3.18.0-rc.1"
     grpc "^1.24.11"
-    kurtosis-core-api-lib "0.16.0"
+    kurtosis-core-api-lib "0.17.1"
     loglevel "^1.7.1"
     minimal-grpc-server "0.3.6"
     neverthrow "^4.2.2"
