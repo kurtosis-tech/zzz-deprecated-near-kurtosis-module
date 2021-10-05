@@ -62,27 +62,12 @@ export async function addIndexer(
     log.info(`Adding indexer service...`);
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
-    /*
-    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-        IMAGE,
-    ).withUsedPorts(
-        usedPortsSet
-    ).build();
-    */
 
     const envvars: Map<string, string> = new Map();
     envvars.set(
         DATABASE_URL_ENVVAR,
         `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`
     )
-    /*
-    const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-        const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-            envvars
-        ).build();
-        return ok(result);
-    }
-    */
 
     const containerConfigSupplier: (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error> = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(

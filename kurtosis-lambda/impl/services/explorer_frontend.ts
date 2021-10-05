@@ -39,14 +39,6 @@ export async function addExplorerFrontendService(
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
-    /*
-    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-        IMAGE,
-    ).withUsedPorts(
-        usedPortsSet,
-    ).build();
-    */
-
 
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
@@ -65,14 +57,6 @@ export async function addExplorerFrontendService(
             maybeHostMachineWampUrl,
         );
     }
-    /*
-    const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-        const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-            envVars
-        ).build();
-        return ok(result);
-    }
-    */
 
     const containerConfigSupplier: (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error> = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(

@@ -32,27 +32,6 @@ export class ExplorerWampInfo {
     public getMaybeHostMachineUrl(): string | undefined {
         return this.maybeHostMachineUrl;
     }
-
-    /*
-    private readonly networkInternalHostname: string;
-    private readonly networkInternalPortNum: number;
-
-    constructor(
-        networkInternalHostname: string,
-        networkInternalPortNum: number,
-    ) {
-        this.networkInternalHostname = networkInternalHostname;
-        this.networkInternalPortNum = networkInternalPortNum;
-    }
-
-    public getNetworkInternalHostname(): string {
-        return this.networkInternalHostname;
-    }
-
-    public getNetworkInternalPortNum(): number {
-        return this.networkInternalPortNum;
-    }
-    */
 }
 
 export async function addExplorerWampService(
@@ -61,24 +40,9 @@ export async function addExplorerWampService(
 ): Promise<Result<ExplorerWampInfo, Error>> {
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
-    /*
-    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-        IMAGE,
-    ).withUsedPorts(
-        usedPortsSet,
-    ).build();
-    */
 
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(SHARED_WAMP_BACKEND_SECRET_ENVVAR, sharedWampBackendSecret);
-    /*
-    const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-        const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-            envVars
-        ).build();
-        return ok(result);
-    }
-    */
 
     const containerConfigSupplier: (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error> = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
