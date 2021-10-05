@@ -1,4 +1,4 @@
-import { NetworkContext } from "kurtosis-core-api-lib";
+import { NetworkContext, SharedPath, ContainerConfig } from "kurtosis-core-api-lib";
 import { KurtosisLambda } from "kurtosis-lambda-api-lib";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
@@ -12,7 +12,7 @@ import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wa
 import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 
-// export type ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => Result<ContainerRunConfig, Error>;
+export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
 const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 

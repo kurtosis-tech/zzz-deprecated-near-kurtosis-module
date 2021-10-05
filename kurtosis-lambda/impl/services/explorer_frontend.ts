@@ -2,6 +2,7 @@ import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Sha
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
+import { ContainerConfigSupplier } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "frontend";
 const IMAGE: string = "kurtosistech/near-explorer_frontend";
@@ -58,7 +59,7 @@ export async function addExplorerFrontendService(
         );
     }
 
-    const containerConfigSupplier: (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error> = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
+    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(

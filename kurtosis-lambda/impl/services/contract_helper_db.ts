@@ -2,6 +2,7 @@ import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Sha
 import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL } from "../consts";
+import { ContainerConfigSupplier } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "contract-helper-db";
 const IMAGE: string = "postgres:13.4-alpine3.14";
@@ -76,7 +77,7 @@ export async function addContractHelperDb(networkCtx: NetworkContext): Promise<R
     log.info("Adding contract helper DB running on port '" + DOCKER_PORT_DESC + "'");
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
-    const containerConfigSupplier: (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error> = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
+    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(IMAGE).withUsedPorts(
             usedPortsSet
         ).withEnvironmentVariableOverrides(
