@@ -26,18 +26,15 @@ export class IndexerInfo {
     private readonly networkInternalPortNum: number;
     // Will only be set if debug mode is enabled
     private readonly maybeHostMachineUrl: string | undefined;
-    private readonly validatorKey: NearKey;
 
     constructor(
         networkInternalHostname: string,
         networkInternalPortNum: number,
         maybeHostMachineUrl: string | undefined,
-        validatorKey: NearKey,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPortNum = networkInternalPortNum;
         this.maybeHostMachineUrl = maybeHostMachineUrl;
-        this.validatorKey = validatorKey;
     }
 
     public getNetworkInternalHostname(): string {
@@ -50,10 +47,6 @@ export class IndexerInfo {
 
     public getMaybeHostMachineUrl(): string | undefined {
         return this.maybeHostMachineUrl;
-    }
-
-    public getValidatorKey(): NearKey {
-        return this.validatorKey;
     }
 }
 
@@ -98,31 +91,6 @@ export async function addIndexer(
     }
     const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
 
-    const getValidatorKeyResult: Result<[number, string], Error> = await serviceCtx.execCommand(GET_VALIDATOR_KEY_CMD);
-    if (getValidatorKeyResult.isErr()) {
-        return err(getValidatorKeyResult.error);
-    }
-    const [getValidatorKeyExitCode, getValidatorKeyLogOutput] = getValidatorKeyResult.value;
-    if (getValidatorKeyExitCode !== EXEC_COMMAND_SUCCESS_EXIT_CODE) {
-        return err(new Error(
-            `Get validator key command '${GET_VALIDATOR_KEY_CMD}' exited with code '${getValidatorKeyExitCode}'' and logs:\n${getValidatorKeyLogOutput}`
-        ));
-    }
-    let validatorKey: NearKey;
-    try {
-        validatorKey = JSON.parse(getValidatorKeyLogOutput)
-    } catch (e: any) {
-        // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
-        // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
-        if (e && e.stack && e.message) {
-            return err(e as Error);
-        }
-        return err(new Error(
-            `Parsing validator key string '${getValidatorKeyLogOutput}' threw an exception, but " +
-                "it's not an Error so we can't report any more information than this`
-        ));
-    }
-
     const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
         maybeHostMachinePortBinding,
@@ -137,7 +105,6 @@ export async function addIndexer(
         SERVICE_ID,
         PORT_NUM,
         maybeHostMachineUrl,
-        validatorKey,
     );
 
     return ok(result);
