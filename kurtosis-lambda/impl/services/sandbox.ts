@@ -1,43 +1,52 @@
 import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
-import log = require("loglevel");
+import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, NearKey, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_lambda";
 
-const SERVICE_ID: ServiceID = "indexer"
-const IMAGE: string = "kurtosistech/near-indexer-for-explorer";
+const SERVICE_ID: ServiceID = "sandbox-node";
+const IMAGE: string = "kurtosistech/nearcore-sandbox:latest";
 const PORT_NUM: number = 3030;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-const DATABASE_URL_ENVVAR = "DATABASE_URL";
-const BOOT_NODES_ENVVAR = "BOOT_NODES";
 
-const NEAR_HOME: string = "/root/.near/localnet"
-const VALIDATOR_KEY_FILEPATH: string = "/root/.near/localnet/validator_key.json";
+const NEAR_HOME: string = "/root/.near"
+const VALIDATOR_KEY_FILEPATH: string = NEAR_HOME + "/validator_key.json";
+const NODE_KEY_FILEPATH: string = NEAR_HOME + "/node_key.json";
 const GET_VALIDATOR_KEY_CMD: string[] = [
     "cat",
-    VALIDATOR_KEY_FILEPATH
+    VALIDATOR_KEY_FILEPATH,
 ]
 const GET_NODE_KEY_CMD: string[] = [
-
+    "cat",
+    NODE_KEY_FILEPATH,
 ]
 
-export class IndexerInfo {
+const CMD: string[] = [
+    "bash",
+    "-c",
+    "neard init --chain-id localnet && neard run"
+]
+
+export class NearNodeInfo {
     private readonly networkInternalHostname: string;
     private readonly networkInternalPortNum: number;
     // Will only be set if debug mode is enabled
     private readonly maybeHostMachineUrl: string | undefined;
     private readonly validatorKey: NearKey;
+    private readonly nodeKey: NearKey;
 
     constructor(
         networkInternalHostname: string,
         networkInternalPortNum: number,
         maybeHostMachineUrl: string | undefined,
         validatorKey: NearKey,
+        nodeKey: NearKey,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPortNum = networkInternalPortNum;
         this.maybeHostMachineUrl = maybeHostMachineUrl;
         this.validatorKey = validatorKey;
+        this.nodeKey = nodeKey;
     }
 
     public getNetworkInternalHostname(): string {
@@ -55,39 +64,28 @@ export class IndexerInfo {
     public getValidatorKey(): NearKey {
         return this.validatorKey;
     }
+
+    public getNodeKey(): NearKey {
+        return this.nodeKey;
+    }
 }
 
-export async function addIndexer(
+export async function addSandboxNode(
     networkCtx: NetworkContext,
-    dbHostname: string,
-    dbPortNum: number,
-    dbUsername: string,
-    dbUserPassword: string,
-    dbName: string,
-    bootnodeIpAddr: string,
-    bootnodeNodeKey: NearKey,
-): Promise<Result<IndexerInfo, Error>> {
-    log.info(`Adding indexer service...`);
+): Promise<Result<NearNodeInfo, Error>> {
+    log.info(`Adding sandbox node service...`);
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
 
-    const envvars: Map<string, string> = new Map();
-    envvars.set(
-        DATABASE_URL_ENVVAR,
-        `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`,
-    )
-    envvars.set(
-        BOOT_NODES_ENVVAR, 
-        `${bootnodeNodeKey.public_key}@${bootnodeIpAddr}`,
-    );
+    // const envvars: Map<string, string> = new Map(STATIC_ENVVARS)
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
             usedPortsSet
-        ).withEnvironmentVariableOverrides(
-            envvars
+        ).withCmdOverride(
+            CMD,
         ).build();
         return ok(result);
     }
@@ -123,6 +121,31 @@ export async function addIndexer(
         ));
     }
 
+    const getNodeKeyResult: Result<[number, string], Error> = await serviceCtx.execCommand(GET_NODE_KEY_CMD);
+    if (getNodeKeyResult.isErr()) {
+        return err(getNodeKeyResult.error);
+    }
+    const [getNodeKeyExitCode, getNodeKeyLogOutput] = getNodeKeyResult.value;
+    if (getNodeKeyExitCode !== EXEC_COMMAND_SUCCESS_EXIT_CODE) {
+        return err(new Error(
+            `Get validator key command '${GET_VALIDATOR_KEY_CMD}' exited with code '${getNodeKeyExitCode}'' and logs:\n${getNodeKeyLogOutput}`
+        ));
+    }
+    let nodeKey: NearKey;
+    try {
+        nodeKey = JSON.parse(getNodeKeyLogOutput)
+    } catch (e: any) {
+        // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
+        // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
+        if (e && e.stack && e.message) {
+            return err(e as Error);
+        }
+        return err(new Error(
+            `Parsing node key string '${getNodeKeyLogOutput}' threw an exception, but " +
+                "it's not an Error so we can't report any more information than this`
+        ));
+    }
+
     const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
         maybeHostMachinePortBinding,
@@ -133,11 +156,12 @@ export async function addIndexer(
     }
     const maybeHostMachineUrl: string | undefined = formHostMachineUrlResult.value;
 
-    const result: IndexerInfo = new IndexerInfo(
+    const result: NearNodeInfo = new NearNodeInfo(
         SERVICE_ID,
         PORT_NUM,
         maybeHostMachineUrl,
         validatorKey,
+        nodeKey,
     );
 
     return ok(result);

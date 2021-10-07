@@ -6,6 +6,12 @@ export const DOCKER_PORT_PROTOCOL_SEPARATOR: string = "/";
 export const EXEC_COMMAND_SUCCESS_EXIT_CODE: number = 0;
 
 
+export interface NearKey {
+    account_id: string;
+    public_key: string;
+    secret_key: string;
+}
+
 export function getPortNumFromHostMachinePortBinding(binding: PortBinding): Result<number, Error> {
     const portStr: string = binding.getInterfacePort();
     const portStrParts: string[] = portStr.split(DOCKER_PORT_PROTOCOL_SEPARATOR);

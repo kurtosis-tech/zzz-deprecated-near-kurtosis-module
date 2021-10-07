@@ -1,7 +1,7 @@
 import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
+import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, NearKey, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
@@ -66,7 +66,7 @@ export async function addContractHelperService(
     dbName: string,
     nearupHostname: string,
     nearupPort: number,
-    validatorKey: string,   // Created in the Nearup service
+    validatorKey: NearKey,   // Created in the Nearup service
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
     log.info(`Adding contract helper service running on port '${DOCKER_PORT_DESC}'`);
     const usedPortsSet: Set<string> = new Set();
@@ -75,7 +75,7 @@ export async function addContractHelperService(
     const envvars: Map<string, string> = new Map();
     envvars.set(
         ACCOUNT_CREATOR_KEY_ENVVAR,
-        validatorKey
+        JSON.stringify(validatorKey),
     )
     envvars.set(
         INDEXER_DB_CONNECTION_ENVVAR,

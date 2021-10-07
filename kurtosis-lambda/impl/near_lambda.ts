@@ -11,6 +11,7 @@ import { addIndexer, IndexerInfo } from "./services/indexer";
 import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wamp";
 import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
+import { addSandboxNode, NearNodeInfo } from "./services/sandbox";
 
 export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
@@ -68,6 +69,12 @@ export class NearLambda implements KurtosisLambda {
                 "it's not an Error so we can't report any more information than this"));
         }
 
+        const addSandboxNodeResult: Result<NearNodeInfo, Error> = await addSandboxNode(networkCtx)
+        if (addSandboxNodeResult.isErr()) {
+            return err(addSandboxNodeResult.error);
+        }
+        const sandboxNodeInfo: NearNodeInfo = addSandboxNodeResult.value;
+
         // TODO handle custom params here
         const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(networkCtx)
         if (addContractHelperDbServiceResult.isErr()) {
@@ -81,7 +88,9 @@ export class NearLambda implements KurtosisLambda {
             contractHelperDbInfo.getNetworkInternalPortNum(),
             contractHelperDbInfo.getDbUsername(),
             contractHelperDbInfo.getDbPassword(),
-            contractHelperDbInfo.getIndexerDb()
+            contractHelperDbInfo.getIndexerDb(),
+            sandboxNodeInfo.getNetworkInternalHostname(),
+            sandboxNodeInfo.getNodeKey(),
         );
         if (addIndexerResult.isErr()) {
             return err(addIndexerResult.error);
@@ -103,9 +112,9 @@ export class NearLambda implements KurtosisLambda {
             contractHelperDbInfo.getDbUsername(),
             contractHelperDbInfo.getDbPassword(),
             contractHelperDbInfo.getIndexerDb(),
-            indexerInfo.getNetworkInternalHostname(),
-            indexerInfo.getNetworkInternalPortNum(),
-            indexerInfo.getValidatorKey()
+            sandboxNodeInfo.getNetworkInternalHostname(),
+            sandboxNodeInfo.getNetworkInternalPortNum(),
+            sandboxNodeInfo.getValidatorKey(),
         );
         if (addContractHelperServiceResult.isErr()) {
             return err(addContractHelperServiceResult.error);
