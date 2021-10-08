@@ -1,4 +1,6 @@
 # TBD
+
+# 0.3.4
 ### Features
 * Publish a `latest` tag
 
