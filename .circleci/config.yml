@@ -39,8 +39,12 @@ jobs:
           set -euo pipefail
           version_to_publish="$(scripts/get-docker-image-tag.sh)"
           echo "Version that will be published: ${version_to_publish}"
-          image_name="kurtosistech/near-kurtosis-lambda:${version_to_publish}"
-          docker push "${image_name}"
+          org_and_image="kurtosistech/near-kurtosis-lambda"
+          image_x_y_z="${org_and_image}:${version_to_publish}"
+          image_latest="${org_and_image}:latest"
+          docker tag "${image_x_y_z}" "${image_latest}"
+          docker push "${image_x_y_z}"
+          docker push "${image_latest}"
 
 workflows:
   build:
