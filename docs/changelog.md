@@ -1,4 +1,7 @@
 # TBD
+### Features
+* Publish a `latest` tag
+
 ### Changes
 * Made the directions for running the Lambda in the README much simpler
 
