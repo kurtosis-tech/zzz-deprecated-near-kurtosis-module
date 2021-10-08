@@ -5,5 +5,5 @@ This repository contains a [Kurtosis Lambda](https://docs.kurtosistech.com/advan
 Run it with [the CLI](https://docs.kurtosistech.com/installation.html) with:
 
 ```
-kurtosis lambda exec kurtosistech/near-kurtosis-lambda:0.3.1
+kurtosis lambda exec kurtosistech/near-kurtosis-lambda
 ```
