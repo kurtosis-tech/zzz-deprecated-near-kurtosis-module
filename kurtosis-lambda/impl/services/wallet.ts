@@ -1,17 +1,14 @@
-/*
-import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationConfigBuilder, ContainerRunConfig, ContainerRunConfigBuilder, StaticFileID, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
-import { ContainerRunConfigSupplier, } from "../near_lambda";
+import { ContainerConfigSupplier } from "../near_lambda";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 // TODO REPLACE WITH SOMETHING FROM DOCKERHUB
-const IMAGE: string = "near-wallet";
-
-const ENV_FILE_FILEPATH: string = ""
+const IMAGE: string = "test-wallet";
 
 const CONTRACT_HELPER_URL_ENVVAR: string = "REACT_APP_ACCOUNT_HELPER_URL";
 const EXPLORER_URL_ENVVAR: string = "EXPLORER_URL";
@@ -22,6 +19,18 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "REACT_APP_ACCOUNT_ID_SUFFIX": "TODO",
     "REACT_APP_ACCESS_KEY_FUNDING_AMOUNT": "3000000000000000000000000", // TODO is this right???
 }))
+
+// Checks if the Wallet container is available by determining if the NginX server is running, which only
+// happens after we build the Wallet to pick up the envvars (see the Wallet Dockerfile for more info) 
+const AVAILABILITY_CHECK_CMD: string[] = [
+    "bash",
+    "-c",
+    "ps aux | grep my_init | grep -v 'grep' | grep -v 'npm'",
+]
+
+// The wallet takes about a minute to build, so we give it 2min to become available
+const MAX_AVAILABILITY_CHECKS: number = 60;
+const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 2000;
 
 export class WalletInfo {
     // Will be set to undefined only in debug mode
@@ -45,11 +54,6 @@ export async function addWallet(
     log.info(`Adding wallet running on port '${DOCKER_PORT_DESC}'`);
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
-    const containerCreationConfig: ContainerCreationConfig = new ContainerCreationConfigBuilder(
-        IMAGE,
-    ).withUsedPorts(
-        usedPortsSet
-    ).build();
 
     const envvars: Map<string, string> = new Map();
     if (maybeHostMachineNearNodeRpcUrl !== undefined) {
@@ -73,18 +77,28 @@ export async function addWallet(
     for (let [key, value] of STATIC_ENVVARS.entries()) {
         envvars.set(key, value);
     }
-    const containerRunConfigSupplier: ContainerRunConfigSupplier = (ipAddr: string, generatedFileFilepaths: Map<string, string>, staticFileFilepaths: Map<StaticFileID, string>) => {
-        const result: ContainerRunConfig = new ContainerRunConfigBuilder().withEnvironmentVariableOverrides(
-            envvars
+
+    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirectory: SharedPath) => {
+        const result = new ContainerConfigBuilder(
+            IMAGE,
+        ).withUsedPorts(
+            usedPortsSet
+        ).withEnvironmentVariableOverrides(
+                envvars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerCreationConfig, containerRunConfigSupplier);
+    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
     const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
+
+    const waitForAvailabilityResult = await waitUntilAvailable(serviceCtx)
+    if (waitForAvailabilityResult.isErr()) {
+        return err(waitForAvailabilityResult.error);
+    }
 
     const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
@@ -100,4 +114,22 @@ export async function addWallet(
 
     return ok(result);
 }
-*/
+
+async function waitUntilAvailable(serviceCtx: ServiceContext): Promise<Result<null, Error>> {
+    for (let i: number = 0; i < MAX_AVAILABILITY_CHECKS; i++) {
+        const execCmdResult = await serviceCtx.execCommand(AVAILABILITY_CHECK_CMD)
+        if (execCmdResult.isOk()) {
+            const logOutput = execCmdResult.value[1];
+            // If there's log output, it means there's a running NginX process
+            if (logOutput.length > 0) {
+                return ok(null);
+            }
+        }
+        await new Promise(resolve => {
+            setTimeout(resolve, MILLIS_BETWEEN_AVAILABILITY_CHECKS);
+        });
+    }
+    return err(new Error(
+        `The Wallet container didn't become available even after ${MAX_AVAILABILITY_CHECKS} checks with ${MILLIS_BETWEEN_AVAILABILITY_CHECKS}ms between checks`
+    ));
+}

@@ -1,4 +1,6 @@
 # TBD
+### Features
+* Add a Wallet service
 
 # 0.3.4
 ### Features
