@@ -1,6 +1,7 @@
 # TBD
 ### Features
 * Add a Wallet service
+* Actually run the Lambda as part of CI
 
 # 0.3.4
 ### Features
