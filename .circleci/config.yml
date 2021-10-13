@@ -25,12 +25,12 @@ jobs:
           if git --no-pager diff --exit-code origin/develop...HEAD -- . ':!docs'; then
             circleci-agent step halt
           fi
-
+ 
+      - run: bash ./scripts/build.sh
       - run: |
           echo "deb [trusted=yes] https://1rRcWo-cTcNiKak7X5tkD7slaIg4GDXrdU@apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install kurtosis-cli
-
       - run: |
           docker_image_tag="$(bash ./scripts/get-docker-image-tag.sh)"
           kurtosis lambda exec "kurtosistech/near-kurtosis-lambda:${docker_image_tag}"
