@@ -33,7 +33,7 @@ jobs:
 
       - run: |
           docker_image_tag="$(bash ./scripts/get-docker-image-tag.sh)"
-          kurtosis lambda exec "kurtosistech/near-kurtosis-lambda/${docker_image_tag}"
+          kurtosis lambda exec "kurtosistech/near-kurtosis-lambda:${docker_image_tag}"
 
   push_artifacts:
     executor: ubuntu_vm
