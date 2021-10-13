@@ -6,11 +6,11 @@ import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_h
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, getPortNumFromHostMachinePortBinding, TCP_PROTOCOL, tryToFormHostMachineUrl } from "./consts";
 // import { addNearupService, NearupInfo } from "./services/nearup";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
-// import { addWallet, WalletInfo } from "./services/wallet";
 import { addIndexer, IndexerInfo } from "./services/indexer";
 import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wamp";
 import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
+import { addWallet, WalletInfo } from "./services/wallet";
 
 export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
@@ -148,26 +148,22 @@ export class NearLambda implements KurtosisLambda {
         }
         const explorerFrontendInfo: ExplorerFrontendInfo = addExplorerFrontendResult.value;
 
-        // TODO Uncomment when wallet is configurable at runtime
-        /*
         const addWalletResult: Result<WalletInfo, Error> = await addWallet(
             networkCtx,
             indexerInfo.getMaybeHostMachineUrl(),
             contractHelperServiceInfo.getMaybeHostMachineUrl(),
-            undefined, // TODO TODO TODO FIX THIS!!!
+            explorerFrontendInfo.getMaybeHostMachineUrl(),
         );
         if (addWalletResult.isErr()) {
             return err(addWalletResult.error);
         }
         const walletInfo: WalletInfo = addWalletResult.value;
-        */
 
         const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
             indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
             explorerWampInfo.getMaybeHostMachineUrl() || null,
-            // walletInfo.getMaybeHostMachineUrl() || null,
-            null, // TODO REPLACE WITH ACTUAL WALLET HOST MACHINE URL
+            walletInfo.getMaybeHostMachineUrl() || null,
             explorerFrontendInfo.getMaybeHostMachineUrl() || null,
         );
 
