@@ -7,8 +7,7 @@ import { ContainerConfigSupplier } from "../near_lambda";
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-// TODO REPLACE WITH SOMETHING FROM DOCKERHUB
-const IMAGE: string = "test-wallet";
+const IMAGE: string = "kurtosistech/near-wallet";
 
 const CONTRACT_HELPER_URL_ENVVAR: string = "REACT_APP_ACCOUNT_HELPER_URL";
 const EXPLORER_URL_ENVVAR: string = "EXPLORER_URL";
