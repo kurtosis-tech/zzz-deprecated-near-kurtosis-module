@@ -7,7 +7,7 @@
         "target": "ES2015"
     },
     "include": [
-        "kurtosis-lambda/**/*"
+        "kurtosis-module/**/*"
     ]
     
 }

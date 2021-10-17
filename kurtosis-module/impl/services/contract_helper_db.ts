@@ -2,7 +2,7 @@ import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Sha
 import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL } from "../consts";
-import { ContainerConfigSupplier } from "../near_lambda";
+import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "contract-helper-db";
 const IMAGE: string = "postgres:13.4-alpine3.14";

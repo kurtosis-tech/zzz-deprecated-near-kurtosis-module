@@ -7,6 +7,8 @@ executors:
   ubuntu_vm:
     machine:
       image: ubuntu-1604:202007-01
+      # DO NOT USE THIS YET! This costs 200 credits *per job run* so is extremely expensive for the free plan, but we can turn it on one day if we get more credits
+      # docker_layer_caching: true
 
 # NOTE: Because CircleCI jobs run on separate machines from each other, we duplicate steps (like checkout) between jobs. This is because doing the "correct" DRY
 #  refactoring of, "one job for checkout, one job for build Docker image, etc." would require a) persisting files between jobs and b) persisting Docker images between
@@ -32,8 +34,9 @@ jobs:
           sudo apt update
           sudo apt install kurtosis-cli
       - run: |
+          source scripts/_constants.env
           docker_image_tag="$(bash ./scripts/get-docker-image-tag.sh)"
-          kurtosis lambda exec "kurtosistech/near-kurtosis-lambda:${docker_image_tag}"
+          kurtosis module exec "${IMAGE_ORG_AND_REPO}:${docker_image_tag}"
 
   push_artifacts:
     executor: ubuntu_vm
@@ -45,14 +48,14 @@ jobs:
 
       - run: |
           set -euo pipefail
-          version_to_publish="$(scripts/get-docker-image-tag.sh)"
+          source scripts/_constants.env
+          version_to_publish="$(bash "scripts/${GET_DOCKER_IMAGE_TAG_SCRIPT_FILENAME}")"
           echo "Version that will be published: ${version_to_publish}"
-          org_and_image="kurtosistech/near-kurtosis-lambda"
-          image_x_y_z="${org_and_image}:${version_to_publish}"
-          image_latest="${org_and_image}:latest"
-          docker tag "${image_x_y_z}" "${image_latest}"
-          docker push "${image_x_y_z}"
-          docker push "${image_latest}"
+          image_name_with_version="${IMAGE_ORG_AND_REPO}:${version_to_publish}"
+          image_name_no_version="${IMAGE_ORG_AND_REPO}:latest"
+          docker tag "${image_name_with_version}" "${image_name_no_version}"
+          docker push "${image_name_with_version}"
+          docker push "${image_name_no_version}"
 
 workflows:
   build:

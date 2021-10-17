@@ -6,8 +6,9 @@ root_dirpath="$(dirname "${script_dirpath}")"
 # ==================================================================================================
 #                                             Constants
 # ==================================================================================================
-IMAGE_ORG_AND_REPO="kurtosistech/near-kurtosis-lambda"
-LAMBDA_DIRNAME="kurtosis-lambda"
+source "${script_dirpath}/_constants.env"
+
+MODULE_DIRNAME="kurtosis-module"
 
 GET_DOCKER_TAG_SCRIPT_FILENAME="get-docker-image-tag.sh"
 
@@ -16,7 +17,7 @@ GET_DOCKER_TAG_SCRIPT_FILENAME="get-docker-image-tag.sh"
 # =============================================================================
 # Checks if dockerignore file is in the root path
 if ! [ -f "${root_dirpath}"/.dockerignore ]; then
-  echo "Error: No .dockerignore file found in language root '${root_dirpath}'; this is required so Docker caching is enabled and your Kurtosis Lambda builds remain quick" >&2
+  echo "Error: No .dockerignore file found in language root '${root_dirpath}'; this is required so Docker caching is enabled and your Kurtosis module builds remain quick" >&2
   exit 1
 fi
 
@@ -27,11 +28,11 @@ if ! docker_tag="$(bash "${get_docker_image_tag_script_filepath}")"; then
 fi
 
 # Build Docker image
-dockerfile_filepath="${root_dirpath}/${LAMBDA_DIRNAME}/Dockerfile"
+dockerfile_filepath="${root_dirpath}/${MODULE_DIRNAME}/Dockerfile"
 image_name="${IMAGE_ORG_AND_REPO}:${docker_tag}"
-echo "Building Kurtosis Lambda into a Docker image named '${image_name}'..."
+echo "Building Kurtosis module into a Docker image named '${image_name}'..."
 if ! docker build -t "${image_name}" -f "${dockerfile_filepath}" "${root_dirpath}"; then
-  echo "Error: Docker build of the Kurtosis Lambda failed" >&2
+  echo "Error: Docker build of the Kurtosis module failed" >&2
   exit 1
 fi
-echo "Successfully built Docker image '${image_name}' containing the Kurtosis Lambda"
+echo "Successfully built Docker image '${image_name}' containing the Kurtosis module"

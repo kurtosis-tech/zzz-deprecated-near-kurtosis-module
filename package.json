@@ -1,13 +1,13 @@
 {
     "scripts": {
-        "build": "ts-mocha -p tsconfig.json 'kurtosis-lambda/test/**/*.ts' && tsc"
+        "build": "ts-mocha -p tsconfig.json 'kurtosis-module/test/**/*.ts' && tsc"
     },
     "files": [
         "build"
     ],
     "dependencies": {
         "grpc": "^1.24.11",
-        "kurtosis-lambda-api-lib": "0.9.2",
+        "kurtosis-module-api-lib": "0.10.0",
         "loglevel": "^1.7.1"
     },
     "devDependencies": {
