@@ -1,6 +1,6 @@
 NEAR Kurtosis Module
 =====================
-This repository contains [an executable Kurtosis module](https://docs.kurtosistech.com/advanced-usage.html#kurtosis-lambdas) for setting up a NEAR network inside of Kurtosis. It is published to Dockerhub [here](https://hub.docker.com/repository/docker/kurtosistech/near-kurtosis-module).
+This repository contains [an executable Kurtosis module](https://docs.kurtosistech.com/modules.html) for setting up a NEAR network inside of Kurtosis. It is published to Dockerhub [here](https://hub.docker.com/repository/docker/kurtosistech/near-kurtosis-module).
 
 Run it with [the CLI](https://docs.kurtosistech.com/installation.html) with:
 
