@@ -1,5 +1,9 @@
 # TBD
 
+# 0.4.1
+### Fixes
+* Fix broken README links
+
 # 0.4.0
 ### Removals
 * Removed the world-public download token in CircleCI config when installing Kurtosis CLI, as it's no longer needed
