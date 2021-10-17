@@ -3,7 +3,6 @@ import { NetworkContext, ServiceID, ContainerCreationConfig, ContainerCreationCo
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
-import { ContainerRunConfigSupplier, } from "../near_lambda";
 
 const NEARUP_SERVICE_ID: ServiceID = "nearup";
 const NEARUP_IMAGE: string = "nearprotocol/nearup";
