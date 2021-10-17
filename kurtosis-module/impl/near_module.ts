@@ -1,5 +1,4 @@
 import { NetworkContext, SharedPath, ContainerConfig } from "kurtosis-core-api-lib";
-import { KurtosisLambda } from "kurtosis-lambda-api-lib";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
 import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
@@ -11,6 +10,7 @@ import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wa
 import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 import { addWallet, WalletInfo } from "./services/wallet";
+import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
 
 export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
@@ -18,7 +18,11 @@ const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 
 const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
-class NearLambdaResult {
+// Params passed in to the execute command, serialized as JSON
+interface ExecuteParams {}
+
+// Result returned by the execute command, serialized as JSON
+class ExecuteResult {
     // When Kurtosis is in debug mode, the explorer frontend's port will be bound to a port on the user's machine so they can access the frontend
     //  even though the frontend is running inside Docker. When Kurtosis is not in debug mode, this will be null.
 
@@ -48,14 +52,14 @@ class NearLambdaResult {
     }
 }
 
-export class NearLambda implements KurtosisLambda {
+export class NearModule implements ExecutableKurtosisModule {
     constructor() {}
 
     // All this logic comes from translating https://github.com/near/docs/blob/975642ad49338bf8728a675def1f8bec8a780922/docs/local-setup/entire-setup.md
     //  into Kurtosis-compatible code
     async execute(networkCtx: NetworkContext, serializedParams: string): Promise<Result<string, Error>> {
-        log.info("Near Lambda receives serializedParams '" + serializedParams + "'");
-        let args: ExecuteArgs;
+        log.info("Serialized execute params '" + serializedParams + "'");
+        let args: ExecuteParams;
         try {
             args = JSON.parse(serializedParams)
         } catch (e: any) {
@@ -68,7 +72,6 @@ export class NearLambda implements KurtosisLambda {
                 "it's not an Error so we can't report any more information than this"));
         }
 
-        // TODO handle custom params here
         const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(networkCtx)
         if (addContractHelperDbServiceResult.isErr()) {
             return err(addContractHelperDbServiceResult.error);
@@ -159,7 +162,7 @@ export class NearLambda implements KurtosisLambda {
         }
         const walletInfo: WalletInfo = addWalletResult.value;
 
-        const nearLambdaResult: NearLambdaResult = new NearLambdaResult(
+        const resultObj: ExecuteResult = new ExecuteResult(
             indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
             explorerWampInfo.getMaybeHostMachineUrl() || null,
@@ -169,18 +172,18 @@ export class NearLambda implements KurtosisLambda {
 
         let stringResult;
         try {
-            stringResult = JSON.stringify(nearLambdaResult);
+            stringResult = JSON.stringify(resultObj);
         } catch (e: any) {
             // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
             // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
             if (e && e.stack && e.message) {
                 return err(e as Error);
             }
-            return err(new Error("An error occurred serializing the Kurtosis Lambda result threw an exception, but " +
+            return err(new Error("Serializing the module result threw an exception, but " +
                 "it's not an Error so we can't report any more information than this"));
         }
 
-        log.info("Near Lambda executed successfully")
+        log.info("Near module executed successfully")
         return ok(stringResult);
     }
 

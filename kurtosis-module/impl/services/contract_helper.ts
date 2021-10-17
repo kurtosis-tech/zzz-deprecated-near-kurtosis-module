@@ -2,37 +2,46 @@ import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Sha
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
-import { ContainerConfigSupplier } from "../near_lambda";
+import { ContainerConfigSupplier } from "../near_module";
 
-const SERVICE_ID: ServiceID = "indexer"
-const IMAGE: string = "kurtosistech/near-indexer-for-explorer";
-const PORT_NUM: number = 3030;
+const SERVICE_ID: ServiceID = "contract-helper-service"
+const PORT_NUM: number = 3000;
 const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
-const DATABASE_URL_ENVVAR = "DATABASE_URL";
+const IMAGE: string = "kurtosistech/near-contract-helper";
+const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
+const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
+const NODE_RPC_URL_ENVVAR: string = "NODE_URL";
+const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
+    "MAIL_HOST": "smtp.ethereal.email",
+    "MAIL_PASSWORD": "",
+    "MAIL_PORT": "587",
+    "MAIL_USER": "",
+    "NEW_ACCOUNT_AMOUNT": "10000000000000000000000000",
+    "NODE_ENV": "development", // Node.js environment; either `development` or `production`
+    "PORT": PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
+    "TWILIO_ACCOUNT_SID": "", // account SID from Twilio (used to send security code)
+    "TWILIO_AUTH_TOKEN": "", // auth token from Twilio (used to send security code)
+    "TWILIO_FROM_PHONE": "+14086179592", // phone number from which to send SMS with security code (international format, starting with `+`)
+    // NOTE: We can't set this because there's a circular dependency between Wallet and Contract Helper app, where
+    //  they both need to point to each others' _publicly-facing ports_ (which are only available after starting the container)
+    // Following the lead of https://github.com/near/local/blob/master/docker-compose.yml, we're choosing to break Contract Helper app
+    "WALLET_URL": "" // NOTE: we can't set this because there's a circular dependency between 
+}));
 
-const VALIDATOR_KEY_FILEPATH: string = "/root/.near/localnet/validator_key.json";
-const GET_VALIDATOR_KEY_CMD: string[] = [
-    "cat",
-    VALIDATOR_KEY_FILEPATH
-]
-
-export class IndexerInfo {
+export class ContractHelperServiceInfo {
     private readonly networkInternalHostname: string;
-    private readonly networkInternalPortNum: number;
+    private readonly networkInternalPorNum: number;
     // Will only be set if debug mode is enabled
     private readonly maybeHostMachineUrl: string | undefined;
-    private readonly validatorKey: string;
 
     constructor(
         networkInternalHostname: string,
-        networkInternalPortNum: number,
+        networkInternalPorNum: number,
         maybeHostMachineUrl: string | undefined,
-        validatorKey: string,
     ) {
         this.networkInternalHostname = networkInternalHostname;
-        this.networkInternalPortNum = networkInternalPortNum;
+        this.networkInternalPorNum = networkInternalPorNum;
         this.maybeHostMachineUrl = maybeHostMachineUrl;
-        this.validatorKey = validatorKey;
     }
 
     public getNetworkInternalHostname(): string {
@@ -40,35 +49,45 @@ export class IndexerInfo {
     }
 
     public getNetworkInternalPortNum(): number {
-        return this.networkInternalPortNum;
+        return this.networkInternalPorNum;
     }
 
     public getMaybeHostMachineUrl(): string | undefined {
         return this.maybeHostMachineUrl;
     }
-
-    public getValidatorKey(): string {
-        return this.validatorKey;
-    }
 }
 
-export async function addIndexer(
+export async function addContractHelperService(
     networkCtx: NetworkContext,
     dbHostname: string,
     dbPortNum: number,
     dbUsername: string,
     dbUserPassword: string,
     dbName: string,
-): Promise<Result<IndexerInfo, Error>> {
-    log.info(`Adding indexer service...`);
+    nearupHostname: string,
+    nearupPort: number,
+    validatorKey: string,   // Created in the Nearup service
+): Promise<Result<ContractHelperServiceInfo, Error>> {
+    log.info(`Adding contract helper service running on port '${DOCKER_PORT_DESC}'`);
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
 
     const envvars: Map<string, string> = new Map();
     envvars.set(
-        DATABASE_URL_ENVVAR,
+        ACCOUNT_CREATOR_KEY_ENVVAR,
+        validatorKey
+    )
+    envvars.set(
+        INDEXER_DB_CONNECTION_ENVVAR,
         `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`
     )
+    envvars.set(
+        NODE_RPC_URL_ENVVAR,
+        `http://${nearupHostname}:${nearupPort}`
+    )
+    for (let [key, value] of STATIC_ENVVARS.entries()) {
+        envvars.set(key, value);
+    }
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
@@ -86,20 +105,8 @@ export async function addIndexer(
         return err(addServiceResult.error);
     }
     const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
-
-    const getValidatorKeyResult: Result<[number, string], Error> = await serviceCtx.execCommand(GET_VALIDATOR_KEY_CMD);
-    if (getValidatorKeyResult.isErr()) {
-        return err(getValidatorKeyResult.error);
-    }
-    const [getValidatorKeyExitCode, getValidatorKeyLogOutput] = getValidatorKeyResult.value;
-    if (getValidatorKeyExitCode !== EXEC_COMMAND_SUCCESS_EXIT_CODE) {
-        return err(new Error(
-            `Get validator key command '${GET_VALIDATOR_KEY_CMD}' exited with code '${getValidatorKeyExitCode}'' and logs:\n${getValidatorKeyLogOutput}`
-        ));
-    }
-    const validatorKey: string = getValidatorKeyLogOutput;
-
     const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
+
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
         maybeHostMachinePortBinding,
         (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
@@ -109,11 +116,10 @@ export async function addIndexer(
     }
     const maybeHostMachineUrl: string | undefined = formHostMachineUrlResult.value;
 
-    const result: IndexerInfo = new IndexerInfo(
+    const result: ContractHelperServiceInfo = new ContractHelperServiceInfo(
         SERVICE_ID,
         PORT_NUM,
         maybeHostMachineUrl,
-        validatorKey,
     );
 
     return ok(result);

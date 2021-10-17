@@ -1,15 +1,20 @@
-import { KurtosisLambda, KurtosisLambdaConfigurator } from 'kurtosis-lambda-api-lib';
 import { Result, err, ok } from 'neverthrow';
 import * as log from 'loglevel';
-import { NearLambda } from './near_lambda';
+import { NearModule } from './near_module';
+import { ExecutableKurtosisModule, KurtosisModuleConfigurator } from 'kurtosis-module-api-lib';
 
 const DEFAULT_LOG_LEVEL: string = "info";
 
 type LoglevelAcceptableLevelStrs = log.LogLevelDesc
 
-export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
-    public parseParamsAndCreateKurtosisLambda(serializedCustomParamsStr: string): Result<KurtosisLambda, Error> {
-        let args: LambdaLaunchArgs;
+// Params, serialized to JSON, that the module accepts when it's loaded (analagous to a constructor)
+interface LoadModuleParams {
+    logLevel: string;
+}
+
+export class NearModuleConfigurator implements KurtosisModuleConfigurator {
+    public parseParamsAndCreateExecutableModule(serializedCustomParamsStr: string): Result<ExecutableKurtosisModule, Error> {
+        let args: LoadModuleParams;
         try {
             args = JSON.parse(serializedCustomParamsStr);
         } catch (e: any) {
@@ -22,17 +27,17 @@ export class NearLambdaConfigurator implements KurtosisLambdaConfigurator {
                 "it's not an Error so we can't report any more information than this"));
         }
 
-        console.log("NEAR Lambda initialization args:");
+        console.log("NEAR module initialization args:");
         console.log(args);
 
-        const setLogLevelResult: Result<null, Error> = NearLambdaConfigurator.setLogLevel(args.logLevel)
+        const setLogLevelResult: Result<null, Error> = NearModuleConfigurator.setLogLevel(args.logLevel)
         if (setLogLevelResult.isErr()) {
             console.log("Error in setting the log level")
             return err(setLogLevelResult.error);
         }
 
-        const lambda: KurtosisLambda = new NearLambda();
-        return ok(lambda);
+        const module: ExecutableKurtosisModule = new NearModule();
+        return ok(module);
     }
 
     private static setLogLevel(logLevelStr: string): Result<null, Error> {

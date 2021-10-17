@@ -1,5 +1,16 @@
 # TBD
 
+# 0.4.0
+### Removals
+* Removed the world-public download token in CircleCI config when installing Kurtosis CLI, as it's no longer needed
+
+### Changes
+* Use the new module API lib, which replaces all references of "Lambda" with "module"
+
+### Breaking Changes
+* Upgrade to the [module API lib 0.10.0](https://github.com/kurtosis-tech/kurtosis-module-api-lib/blob/develop/docs/changelog.md#0100), which replaces all references of "Lambda" with "module"
+    * Users will need the latest version of Kurtosis CLI which has `module exec` rather than `lambda exec` to run this NEAR module
+
 # 0.3.5
 ### Features
 * Add a Wallet service
