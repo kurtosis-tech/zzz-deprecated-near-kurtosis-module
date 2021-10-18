@@ -1,5 +1,7 @@
 # TBD
 
+* Add a use-case specific quickstart for NEAR users
+
 # 0.4.1
 ### Fixes
 * Fix broken README links
