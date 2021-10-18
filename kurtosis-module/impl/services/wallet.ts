@@ -15,7 +15,8 @@ const NODE_URL_ENVVAR: string = "REACT_APP_NODE_URL";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "REACT_APP_IS_MAINNET": "false",
     "REACT_APP_NETWORK_ID": "localnet",
-    "REACT_APP_ACCOUNT_ID_SUFFIX": "TODO",
+    // TODO make this dynamic, from the validator key that comes back from indexer node startup
+    "REACT_APP_ACCOUNT_ID_SUFFIX": "test.near",
     "REACT_APP_ACCESS_KEY_FUNDING_AMOUNT": "3000000000000000000000000", // TODO is this right???
 }))
 
