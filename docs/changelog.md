@@ -1,5 +1,13 @@
 # TBD
 
+# 0.4.3
+### Features
+* Add a use-case specific quickstart for NEAR users
+* Add a flag, `isWalletEnabled`, to disable starting the wallet (`false` by default)
+
+### Fixes
+* Set the Wallet's `ACCOUNT_SUFFIX` variable to `near`, to match what gets created in the Genesis block
+
 # 0.4.2
 ### Changes
 * Upped the wallet wait-for-availability time from 2m to 3m

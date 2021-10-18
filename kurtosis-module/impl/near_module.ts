@@ -18,8 +18,13 @@ const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 
 const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
+// Wallet takes a long time to start due to 
+const DEFAULT_IS_WALLET_ENABLED_VALUE: boolean = false;
+
 // Params passed in to the execute command, serialized as JSON
-interface ExecuteParams {}
+class ExecuteParams {
+    public isWalletEnabled: boolean = DEFAULT_IS_WALLET_ENABLED_VALUE;
+}
 
 // Result returned by the execute command, serialized as JSON
 class ExecuteResult {
@@ -59,9 +64,9 @@ export class NearModule implements ExecutableKurtosisModule {
     //  into Kurtosis-compatible code
     async execute(networkCtx: NetworkContext, serializedParams: string): Promise<Result<string, Error>> {
         log.info("Serialized execute params '" + serializedParams + "'");
-        let args: ExecuteParams;
+        let parseResult: any;
         try {
-            args = JSON.parse(serializedParams)
+            parseResult = JSON.parse(serializedParams)
         } catch (e: any) {
             // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
             // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
@@ -71,6 +76,10 @@ export class NearModule implements ExecutableKurtosisModule {
             return err(new Error("Parsing params string '" + serializedParams + "' threw an exception, but " +
                 "it's not an Error so we can't report any more information than this"));
         }
+        const args: ExecuteParams = Object.assign(
+            new ExecuteParams(), 
+            JSON.parse(serializedParams),
+        );
 
         const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(networkCtx)
         if (addContractHelperDbServiceResult.isErr()) {
@@ -151,22 +160,26 @@ export class NearModule implements ExecutableKurtosisModule {
         }
         const explorerFrontendInfo: ExplorerFrontendInfo = addExplorerFrontendResult.value;
 
-        const addWalletResult: Result<WalletInfo, Error> = await addWallet(
-            networkCtx,
-            indexerInfo.getMaybeHostMachineUrl(),
-            contractHelperServiceInfo.getMaybeHostMachineUrl(),
-            explorerFrontendInfo.getMaybeHostMachineUrl(),
-        );
-        if (addWalletResult.isErr()) {
-            return err(addWalletResult.error);
+        let maybeWalletHostMachineUrl: string | undefined = undefined;
+        if (args.isWalletEnabled) {
+            const addWalletResult: Result<WalletInfo, Error> = await addWallet(
+                networkCtx,
+                indexerInfo.getMaybeHostMachineUrl(),
+                contractHelperServiceInfo.getMaybeHostMachineUrl(),
+                explorerFrontendInfo.getMaybeHostMachineUrl(),
+            );
+            if (addWalletResult.isErr()) {
+                return err(addWalletResult.error);
+            }
+            const walletInfo: WalletInfo = addWalletResult.value;
+            maybeWalletHostMachineUrl = walletInfo.getMaybeHostMachineUrl();
         }
-        const walletInfo: WalletInfo = addWalletResult.value;
 
         const resultObj: ExecuteResult = new ExecuteResult(
             indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
             explorerWampInfo.getMaybeHostMachineUrl() || null,
-            walletInfo.getMaybeHostMachineUrl() || null,
+            maybeWalletHostMachineUrl || null,
             explorerFrontendInfo.getMaybeHostMachineUrl() || null,
         );
 
