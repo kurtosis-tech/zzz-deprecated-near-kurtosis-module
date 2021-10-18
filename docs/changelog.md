@@ -1,4 +1,6 @@
 # TBD
+### Features
+* Add a use-case specific quickstart for NEAR users
 
 # 0.4.2
 ### Changes
