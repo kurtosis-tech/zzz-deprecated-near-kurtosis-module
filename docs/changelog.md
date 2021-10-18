@@ -1,6 +1,10 @@
 # TBD
 ### Features
 * Add a use-case specific quickstart for NEAR users
+* Add a flag, `isWalletEnabled`, to disable starting the wallet (`false` by default)
+
+### Fixes
+* Set the Wallet's `ACCOUNT_SUFFIX` variable to `near`, to match what gets created in the Genesis block
 
 # 0.4.2
 ### Changes
