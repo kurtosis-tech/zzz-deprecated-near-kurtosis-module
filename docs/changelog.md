@@ -1,7 +1,10 @@
 # TBD
-
 ### Features
 * Add a use-case specific quickstart for NEAR users
+
+# 0.4.2
+### Changes
+* Upped the wallet wait-for-availability time from 2m to 3m
 
 # 0.4.1
 ### Fixes
