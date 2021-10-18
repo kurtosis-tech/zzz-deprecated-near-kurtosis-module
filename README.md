@@ -5,16 +5,13 @@ This repository contains [an executable Kurtosis module](https://docs.kurtosiste
 ### Local NEAR Development Environment Quickstart
 
 1. Install [the Kurtosis CLI](https://docs.kurtosistech.com/installation.html) if you haven't yet.
-2. Run the local NEAR development environment with [the CLI](https://docs.kurtosistech.com/installation.html) with:
+1. Run the local NEAR development environment with [the CLI](https://docs.kurtosistech.com/installation.html) with:
 
         
         kurtosis module exec kurtosistech/near-kurtosis-module
-3. Open a new terminal window and see your Kurtosis enclave IDs with 
-   
-        kurtosis enclave ls
-4. Examine the locations (port locations on localhost) of the services in your development environment with
+    1. _NOTE:_ The environment will take about 2 minutes to start, half of which is the Wallet building inside its Docker container. When we have a good solution for https://github.com/near/near-wallet/issues/80 , this startup time should be reduced by about a minute.
+1. Get the host and ports for each of the services in your environment from the output of the `kurtosis module exec` command, which should look something like:
 
-        kurtosis enclave inspect <ENCLAVE_ID>
-5. Communicate with your local development environment by pointing your code editor, postman, etc. to your own local services!
-
-_NOTE:_ The environment will take about 2 minutes to start, half of which is the Wallet building inside its Docker container. When we have a good solution for https://github.com/near/near-wallet/issues/80 , this startup time should be reduced by about a minute.
+        {"maybeHostMachineNearNodeUrl":"<URL>","maybeHostMachineContractHelperUrl":"<URL>",
+        ...}
+1. Communicate with your local development environment by pointing your code editor, postman, etc. to your own local services!
