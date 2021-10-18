@@ -1,4 +1,6 @@
 # TBD
+### Changes
+* Upped the wallet wait-for-availability time from 2m to 3m
 
 # 0.4.1
 ### Fixes
