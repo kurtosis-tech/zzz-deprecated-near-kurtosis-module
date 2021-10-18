@@ -1,5 +1,9 @@
 # TBD
 
+# 0.4.2
+### Changes
+* Upped the wallet wait-for-availability time from 2m to 3m
+
 # 0.4.1
 ### Fixes
 * Fix broken README links

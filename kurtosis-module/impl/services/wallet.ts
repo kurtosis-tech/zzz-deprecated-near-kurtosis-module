@@ -27,9 +27,9 @@ const AVAILABILITY_CHECK_CMD: string[] = [
     "ps aux | grep my_init | grep -v 'grep' | grep -v 'npm'",
 ]
 
-// The wallet takes about a minute to build, so we give it 2min to become available
-const MAX_AVAILABILITY_CHECKS: number = 60;
-const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 2000;
+// The wallet takes about a minute to build, so we give it 3min to become available (2min sometimes was too little)
+const MAX_AVAILABILITY_CHECKS: number = 180;
+const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 1000;
 
 export class WalletInfo {
     // Will be set to undefined only in debug mode
