@@ -1,5 +1,9 @@
 # TBD
 
+# 0.4.4
+### Features
+* Optimized the Dockerfile reducing the size to ~100MB (was 330MB)
+
 # 0.4.3
 ### Features
 * Add a use-case specific quickstart for NEAR users

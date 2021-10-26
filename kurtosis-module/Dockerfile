@@ -1,36 +1,43 @@
-FROM node:14.17.6-alpine3.14 AS builder
+# ============================ Base ============================
+FROM alpine:3.14 AS base
 
+# Unfortunately Alpine packages are updated in-place, and old versions are discarded so there's no way to use older versions and pin the NodeJS version
+RUN apk add --no-cache nodejs
 WORKDIR /build
 
 COPY package.json .
 COPY yarn.lock .
 
-RUN yarn install
+# ============================ Build ============================
+FROM base AS build
 
-# Copy the code into the container
+RUN apk add --no-cache yarn
+
+# install node packages
+# RUN npm set progress=false && npm config set depth 0
+RUN yarn install --frozen-lockfile --production=true
+
+# Use node-prune to further reduce unnecessary files: https://github.com/tj/node-prune
+RUN curl -sf https://gobinaries.com/tj/node-prune | sh
+
+# Set aside these production dependencies for use later
+RUN cp -R node_modules prod_node_modules
+
+# Install ALL node_modules, including 'devDependencies'
+RUN yarn install --frozen-lockfile
+
 COPY . .
-
-# Copy local static files inside the Kurtosis module image
-COPY kurtosis-module/static_files /static-files
 
 RUN yarn build
 
-# Build the application
-CMD node build/main.js
+#
+# ============================ Run ============================
+FROM base AS run
+WORKDIR /run
 
-# TODO TODO TODO TODO copy to an execution image!!!!
-# 
-# # ============= Execution Stage ================
-# FROM node:14.17-alpine AS execution
-# 
-# WORKDIR /run
-# 
-# ENV NODE_ENV production
-# 
-# # Copy the code into the container
-# COPY --from=builder /build/build
-# 
-# # Copy local static files inside the testsuite image
-# COPY testsuite/static_files /static-files
-# 
-# CMD ./testsuite.bin
+# copy production node_modules
+COPY --from=build /build/prod_node_modules ./node_modules
+# copy app sources
+COPY --from=build /build/build ./build
+
+CMD node build/main.js
