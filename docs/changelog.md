@@ -1,4 +1,6 @@
 # TBD
+### Features
+* Optimized the Dockerfile reducing the size to ~100MB (was 330MB)
 
 # 0.4.3
 ### Features
