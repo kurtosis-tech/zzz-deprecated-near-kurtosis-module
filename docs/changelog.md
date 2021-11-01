@@ -1,5 +1,9 @@
 # TBD
 
+# 0.4.5
+### Fixes
+* Add a retry for getting the node validator key, rather than failing immediately
+
 # 0.4.4
 ### Features
 * Optimized the Dockerfile reducing the size to ~100MB (was 330MB)

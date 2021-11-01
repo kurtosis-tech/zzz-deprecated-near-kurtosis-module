@@ -16,6 +16,9 @@ const GET_VALIDATOR_KEY_CMD: string[] = [
     VALIDATOR_KEY_FILEPATH
 ]
 
+const MAX_NUM_GET_VALIDATOR_KEY_RETRIES: number = 20;
+const MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES: number = 500;
+
 export class IndexerInfo {
     private readonly networkInternalHostname: string;
     private readonly networkInternalPortNum: number;
@@ -87,17 +90,11 @@ export async function addIndexer(
     }
     const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
 
-    const getValidatorKeyResult: Result<[number, string], Error> = await serviceCtx.execCommand(GET_VALIDATOR_KEY_CMD);
+    const getValidatorKeyResult: Result<string, Error> = await getValidatorKeyWithRetry(serviceCtx);
     if (getValidatorKeyResult.isErr()) {
         return err(getValidatorKeyResult.error);
     }
-    const [getValidatorKeyExitCode, getValidatorKeyLogOutput] = getValidatorKeyResult.value;
-    if (getValidatorKeyExitCode !== EXEC_COMMAND_SUCCESS_EXIT_CODE) {
-        return err(new Error(
-            `Get validator key command '${GET_VALIDATOR_KEY_CMD}' exited with code '${getValidatorKeyExitCode}'' and logs:\n${getValidatorKeyLogOutput}`
-        ));
-    }
-    const validatorKey: string = getValidatorKeyLogOutput;
+    const validatorKey: string = getValidatorKeyResult.value;
 
     const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
@@ -117,4 +114,18 @@ export async function addIndexer(
     );
 
     return ok(result);
+}
+
+async function getValidatorKeyWithRetry(serviceCtx: ServiceContext): Promise<Result<string, Error>> {
+    for (let i = 0; i < MAX_NUM_GET_VALIDATOR_KEY_RETRIES; i++) {
+        const getValidatorKeyResult: Result<[number, string], Error> = await serviceCtx.execCommand(GET_VALIDATOR_KEY_CMD);
+        if (getValidatorKeyResult.isOk()) {
+            const [getValidatorKeyExitCode, getValidatorKeyLogOutput] = getValidatorKeyResult.value;
+            if (getValidatorKeyExitCode === EXEC_COMMAND_SUCCESS_EXIT_CODE) {
+                return ok(getValidatorKeyLogOutput);
+            }
+        }
+        await new Promise(resolve => setTimeout(resolve, MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES));
+    }
+    return err(new Error(`Couldn't get the node's validator key, even after ${MAX_NUM_GET_VALIDATOR_KEY_RETRIES} retries with ${MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES}ms between retries`))
 }
