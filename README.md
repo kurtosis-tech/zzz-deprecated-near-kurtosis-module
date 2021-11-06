@@ -8,7 +8,7 @@ This repository contains [an executable Kurtosis module](https://docs.kurtosiste
 1. Run the local NEAR development environment with [the CLI](https://docs.kurtosistech.com/installation.html) with:
         
         kurtosis module exec kurtosistech/near-kurtosis-module
-    * _NOTE:_ The environment that gets started won't have a wallet. If you want a wallet, pass in `--execute-params '{"isWalletEnabled":true}'` as an extra flag to the `module exec` command. This will take an extra 1-2 minutes to start. When we have a good solution for https://github.com/near/near-wallet/issues/80 , this startup time should be reduced.
+    * _NOTE:_ The environment that gets started won't have a wallet. If you want a wallet, add the following flag `--execute-params '{"isWalletEnabled":true}'` to the `module exec` command. This will take an extra 1-2 minutes to start. When we have a good solution for https://github.com/near/near-wallet/issues/80 , this startup time should be reduced.
 1. Get the host and ports for each of the services in your environment from the output of the `kurtosis module exec` command, which should look something like:
 
         {"maybeHostMachineNearNodeUrl":"<URL>","maybeHostMachineContractHelperUrl":"<URL>",
