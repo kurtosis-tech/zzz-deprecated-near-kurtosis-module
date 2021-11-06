@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.0
 ### Features
 * Result JSON string is pretty-printed
 * Result JSON now contains two extra fields:
