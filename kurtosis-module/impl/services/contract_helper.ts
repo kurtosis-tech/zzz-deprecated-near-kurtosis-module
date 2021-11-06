@@ -27,6 +27,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     // Following the lead of https://github.com/near/local/blob/master/docker-compose.yml, we're choosing to break Contract Helper app
     "WALLET_URL": "" // NOTE: we can't set this because there's a circular dependency between 
 }));
+const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 export class ContractHelperServiceInfo {
     private readonly networkInternalHostname: string;
@@ -66,16 +67,29 @@ export async function addContractHelperService(
     dbName: string,
     nearupHostname: string,
     nearupPort: number,
-    validatorKey: string,   // Created in the Nearup service
+    validatorKey: Object,
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
     log.info(`Adding contract helper service running on port '${DOCKER_PORT_DESC}'`);
     const usedPortsSet: Set<string> = new Set();
     usedPortsSet.add(DOCKER_PORT_DESC)
 
+    let validatorKeyStr: string;
+    try {
+        validatorKeyStr = JSON.stringify(validatorKey, null, VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES);
+    } catch (e: any) {
+        // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
+        // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
+        if (e && e.stack && e.message) {
+            return err(e as Error);
+        }
+        return err(new Error("Serializing the validator key threw an exception, but " +
+            "it's not an Error so we can't report any more information than this"));
+    }
+
     const envvars: Map<string, string> = new Map();
     envvars.set(
         ACCOUNT_CREATOR_KEY_ENVVAR,
-        validatorKey
+        validatorKeyStr,
     )
     envvars.set(
         INDEXER_DB_CONNECTION_ENVVAR,

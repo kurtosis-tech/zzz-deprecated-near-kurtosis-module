@@ -18,6 +18,8 @@ const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 
 const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
+const RESULT_JSON_PRETTY_PRINT_SPACE_NUM: number = 4;
+
 // Wallet takes a long time to start due to 
 const DEFAULT_IS_WALLET_ENABLED_VALUE: boolean = false;
 
@@ -28,32 +30,32 @@ class ExecuteParams {
 
 // Result returned by the execute command, serialized as JSON
 class ExecuteResult {
-    // When Kurtosis is in debug mode, the explorer frontend's port will be bound to a port on the user's machine so they can access the frontend
-    //  even though the frontend is running inside Docker. When Kurtosis is not in debug mode, this will be null.
+    private readonly networkName: string;
 
-    // Same thing - when debug mode is enabled, the nearup container will be bound to a port on the user's host machine
-    private readonly maybeHostMachineNearNodeUrl: string | null;
+    private readonly rootValidatorKey: Object;
 
-    private readonly maybeHostMachineContractHelperUrl: string | null;
+    private readonly nearNodeRpcUrl: string | null;
 
-    private readonly maybeHostMachineExplorerWampUrl: string | null;
+    private readonly contractHelperServiceUrl: string | null;
 
-    private readonly maybeHostMachineWalletUrl: string | null;
+    private readonly walletUrl: string | null;
 
-    private readonly maybeHostMachineExplorerFrontendUrl: string | null;
+    private readonly explorerUrl: string | null;
 
     constructor(
-        maybeHostMachineNearNodeUrl: string | null,
-        maybeHostMachineContractHelperUrl: string | null,
-        maybeHostMachineExplorerWampUrl: string | null,
-        maybeHostMachineWalletUrl: string | null,
-        maybeHostMachineExplorerFrontendUrl: string | null,
+        networkName: string,
+        rootValidatorKey: Object,
+        nearNodeRpcUrl: string | null,
+        contractHelperServiceUrl: string | null,
+        walletUrl: string | null,
+        explorerUrl: string | null,
     ) {
-        this.maybeHostMachineNearNodeUrl = maybeHostMachineNearNodeUrl;
-        this.maybeHostMachineContractHelperUrl = maybeHostMachineContractHelperUrl;
-        this.maybeHostMachineExplorerWampUrl = maybeHostMachineExplorerWampUrl;
-        this.maybeHostMachineWalletUrl = maybeHostMachineWalletUrl;
-        this.maybeHostMachineExplorerFrontendUrl = maybeHostMachineExplorerFrontendUrl;
+        this.networkName = networkName;
+        this.rootValidatorKey = rootValidatorKey;
+        this.nearNodeRpcUrl = nearNodeRpcUrl;
+        this.contractHelperServiceUrl = contractHelperServiceUrl;
+        this.walletUrl = walletUrl;
+        this.explorerUrl = explorerUrl;
     }
 }
 
@@ -176,16 +178,17 @@ export class NearModule implements ExecutableKurtosisModule {
         }
 
         const resultObj: ExecuteResult = new ExecuteResult(
+            EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
+            indexerInfo.getValidatorKey(),
             indexerInfo.getMaybeHostMachineUrl() || null,
             contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
-            explorerWampInfo.getMaybeHostMachineUrl() || null,
             maybeWalletHostMachineUrl || null,
             explorerFrontendInfo.getMaybeHostMachineUrl() || null,
         );
 
         let stringResult;
         try {
-            stringResult = JSON.stringify(resultObj);
+            stringResult = JSON.stringify(resultObj, null, RESULT_JSON_PRETTY_PRINT_SPACE_NUM);
         } catch (e: any) {
             // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
             // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
