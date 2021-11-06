@@ -32,7 +32,7 @@ class ExecuteParams {
 class ExecuteResult {
     private readonly networkName: string;
 
-    private readonly rootValidatorKey: string;
+    private readonly rootValidatorKey: Object;
 
     private readonly nearNodeRpcUrl: string | null;
 
@@ -44,7 +44,7 @@ class ExecuteResult {
 
     constructor(
         networkName: string,
-        rootValidatorKey: string,
+        rootValidatorKey: Object,
         nearNodeRpcUrl: string | null,
         contractHelperServiceUrl: string | null,
         walletUrl: string | null,
