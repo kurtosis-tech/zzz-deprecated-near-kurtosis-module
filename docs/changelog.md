@@ -1,5 +1,22 @@
 # TBD
 
+# 0.5.0
+### Features
+* Result JSON string is pretty-printed
+* Result JSON now contains two extra fields:
+    * `networkName`
+    * `rootValidatorKey`
+
+### Breaking Changes
+* The result object has been refactored to remove the WAMP and the `maybe` prefix, as well as adding some additional fields
+    * Users should modify their code to accept the new properties:
+        * `networkName`
+        * `rootValidatorKey`
+        * `nearNodeRpcUrl`
+        * `contractHelperServiceUrl`
+        * `walletUrl`
+        * `explorerUrl`
+
 # 0.4.5
 ### Fixes
 * Add a retry for getting the node validator key, rather than failing immediately

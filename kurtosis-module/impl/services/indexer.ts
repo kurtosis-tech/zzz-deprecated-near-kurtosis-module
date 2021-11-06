@@ -24,13 +24,13 @@ export class IndexerInfo {
     private readonly networkInternalPortNum: number;
     // Will only be set if debug mode is enabled
     private readonly maybeHostMachineUrl: string | undefined;
-    private readonly validatorKey: string;
+    private readonly validatorKey: Object;
 
     constructor(
         networkInternalHostname: string,
         networkInternalPortNum: number,
         maybeHostMachineUrl: string | undefined,
-        validatorKey: string,
+        validatorKey: Object,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPortNum = networkInternalPortNum;
@@ -50,7 +50,7 @@ export class IndexerInfo {
         return this.maybeHostMachineUrl;
     }
 
-    public getValidatorKey(): string {
+    public getValidatorKey(): Object {
         return this.validatorKey;
     }
 }
@@ -94,7 +94,22 @@ export async function addIndexer(
     if (getValidatorKeyResult.isErr()) {
         return err(getValidatorKeyResult.error);
     }
-    const validatorKey: string = getValidatorKeyResult.value;
+    const validatorKeyStr: string = getValidatorKeyResult.value;
+
+    let validatorKey: Object;
+    try {
+        validatorKey = JSON.parse(validatorKeyStr);
+    } catch (e: any) {
+        // Sadly, we have to do this because there's no great way to enforce the caught thing being an error
+        // See: https://stackoverflow.com/questions/30469261/checking-for-typeof-error-in-js
+        if (e && e.stack && e.message) {
+            return err(e as Error);
+        }
+        return err(new Error(
+            `JSON-parsing validator key string ${validatorKeyStr} threw an exception, but ` +
+                `it's not an Error so we can't report any more information than this`
+        ));
+    }
 
     const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
     const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
