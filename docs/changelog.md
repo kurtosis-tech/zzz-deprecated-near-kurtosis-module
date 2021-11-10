@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.1
+### Fixes
+* Update README to reflect new module output
+
 # 0.5.0
 ### Features
 * Result JSON string is pretty-printed
