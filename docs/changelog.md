@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.1
 ### Fixes
 * Update README to reflect new module output
 
