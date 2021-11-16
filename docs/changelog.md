@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.3
 ### Fixes
 * Replace accidental `near` reference in quickstart with `local_near`
 
