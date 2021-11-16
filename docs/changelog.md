@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.2
 ### Features
 * Updated the README with more detailed quickstart for NEAR users
 
