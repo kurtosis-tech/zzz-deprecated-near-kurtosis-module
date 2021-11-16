@@ -64,7 +64,7 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
     ```
 1. Run NEAR CLI commands using `local_near` in place of `near`, e.g.:
     ```
-    near dev-deploy --wasmFile path/to/your.wasm  -f
+    local_near dev-deploy --wasmFile path/to/your.wasm  -f
     ```
 1. If desired, you can persist the alias above to your `~/.bash_profile` (if on Mac) or `~/.bashrc` (if on Linux) so that it's always available.
 

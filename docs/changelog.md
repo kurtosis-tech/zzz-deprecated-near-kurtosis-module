@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.3
+### Fixes
+* Replace accidental `near` reference in quickstart with `local_near`
+
 # 0.5.2
 ### Features
 * Updated the README with more detailed quickstart for NEAR users
