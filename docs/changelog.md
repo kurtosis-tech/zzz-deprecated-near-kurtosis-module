@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.7
 ### Fixes
 * Made README even clearer about what's going on
 
