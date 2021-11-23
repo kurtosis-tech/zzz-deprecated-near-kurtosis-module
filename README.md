@@ -39,33 +39,33 @@ The cluster you started will continue to run on your local machine for as long a
 
 To see the status of your existing enclaves, run:
 
-    ```
-    kurtosis enclave ls
-    ```
+```
+kurtosis enclave ls
+```
 
 To see detailed information about an enclave, copy an enclave ID and run:
 
-    ```
-    kurtosis enclave inspect THE_ENCLAVE_ID
-    ```
+```
+kurtosis enclave inspect THE_ENCLAVE_ID
+```
 
 To shut down your cluster to free up resources on your machine, run the following (NOTE: You will not be able to restart the cluster! If this is something you need, please file an issue [here](https://github.com/kurtosis-tech/kurtosis-cli-release-artifacts) so we can prioritize it):
 
-    ```
-    kurtosis enclave stop THE_ENCLAVE_ID
-    ```
+```
+kurtosis enclave stop THE_ENCLAVE_ID
+```
 
 Stopping an enclave leaves its resources intact so that you can examine them if need be. To destroy a stopped enclave and free its resources, run:
 
-    ```
-    kurtosis clean
-    ```
+```
+kurtosis clean
+```
 
 If you would like to destroy _all_ enclaves, regardless of if they're running, pass the `-a` flag to `clean` like so:
 
-    ```
-    kurtosis clean -a
-    ```
+```
+kurtosis clean -a
+```
 
 This can be a handy way to clear all your Kurtosis data.
 
