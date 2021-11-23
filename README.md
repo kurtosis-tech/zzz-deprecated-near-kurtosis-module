@@ -6,7 +6,8 @@ Quickstart
 ----------
 These quickstart instructions will do the following:
 1. Start a local NEAR cluster, running in Kurtosis, complete with Wallet, Explorer, indexer, etc.
-1. 
+1. Save the output of starting the cluster, and the cluster's master validator key JSON file, to the `~/.neartosis` directory
+1. Display an alias and set of URLs for interacting with the cluster
 
 _NOTE: If you're viewing these instructions on Github, all code blocks can be copied by hovering over the block and clicking the clipboard that appears in the top-right corner_
 
@@ -23,9 +24,15 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
 1. Visit [this link](https://docs.kurtosistech.com/installation.html) to install the Kurtosis CLI (or upgrade it to latest if it's already installed)
 
 ### Launch the local NEAR cluster in Kurtosis
-1. Download [this script](./launch-local-near-cluster.sh) to somewhere on your local machine
-1. Execute the script
-1. Follow the instructions printed
+1. Save [this script](./launch-local-near-cluster.sh) to your local machine (which can be used to start arbitrary numbers of NEAR clusters):
+    ```
+    curl -o ~/launch-local-near-cluster.sh https://raw.githubusercontent.com/kurtosis-tech/near-kurtosis-module/master/launch-local-near-cluster.sh
+    ```
+1. Execute the script:
+    ```
+    bash ~/launch-local-near-cluster.sh
+    ```
+1. Follow the instructions that the script prints
 
 ### Manage your local NEAR cluster
 The cluster you started will continue to run on your local machine for as long as your Docker engine is running (which, in most cases, is for as long as you don't restart your computer). The cluster runs inside of a Kurtosis "enclave", an environment isolated from both your computer and other enclaves; in practice, this means that you can have multiple independent local NEAR clusters running on your machine simply be rerunning the `kurtosis module exec` command from the start of this guide.
