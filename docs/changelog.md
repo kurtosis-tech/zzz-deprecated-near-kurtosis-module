@@ -1,4 +1,8 @@
 # TBD
+### Fixes
+* Use indexer node version 0.2.0, which:
+    * Disables fast blocks (so less CPU/memory usage)
+    * Is in archival mode, so won't lose transactions after 500 blocks
 
 # 0.5.4
 ### Fixes
