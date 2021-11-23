@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Made README even clearer about what's going on
 
 # 0.5.6
 ### Changes
