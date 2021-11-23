@@ -21,7 +21,7 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
 ### Launch the local NEAR cluster in Kurtosis
 1. Create a directory to store your NEAR Kurtosis info:
     ```
-    mkdir ~/near-kurtosis
+    mkdir ~/near-kurtosis && cd ~/near-kurtosis
     ```
 1. Launch the local NEAR cluster:
     ```
@@ -92,7 +92,7 @@ This can be a handy way to clear all your Kurtosis data.
     ```
     MODULE_OUTPUT_FILEPATH="the-name-of-the-file.log"
     ```
-1. Paste the following chunk of code into your terminal, which will a) create a `neartosis-validator-key_YYYY-MM-DDTHH.MM.SS.json` file and b) output an `alias local_near=......` command for connecting to the NEAR environment in Kurtosis:
+1. Paste the following chunk of code into your terminal, which will a) create a `neartosis-validator-key_YYYY-MM-DDTHH.MM.SS.json` file and b) create a `local_near` command in your current shell for connecting to the NEAR environment in Kurtosis that behaves just like the `near` CLI:
     ```bash
     # Constants
     VALIDATOR_KEY_PROPERTY_W_QUOTES='"rootValidatorKey":'
@@ -101,11 +101,12 @@ This can be a handy way to clear all your Kurtosis data.
     NODE_RPC_URL_PROPERTY="nearNodeRpcUrl"
     HELPER_URL_PROPERTY="contractHelperServiceUrl"
     WALLET_URL_PROPERTY="walletUrl"
+    COMMAND_NAME="local_near"
 
     # Extracts values from the module execution output, and generates a 'local_near' alias for connecting to the NEAR cluster
-    function get_alias_str() {
+    function get_alias_str_contents() {
         if [ -z "${MODULE_OUTPUT_FILEPATH}" ]; then
-            echo "MODULE_OUTPUT_FILEPATH variable needs to be set" >&2
+            echo "The MODULE_OUTPUT_FILEPATH variable must to be set to the 'module exec' output logfile (near-module-output_YYYY-MM-DDTHH.MM.SS.log) that you want to extract cluster information from" >&2
             return 1
         fi
 
@@ -124,17 +125,24 @@ This can be a handy way to clear all your Kurtosis data.
         helper_url="$(get_json_property "${HELPER_URL_PROPERTY}")"
         wallet_url="$(get_json_property "${WALLET_URL_PROPERTY}")"
 
-        echo "alias local_near='near --nodeUrl ${node_url} --walletUrl ${wallet_url} --helperUrl ${helper_url} --keyPath ${validator_key_filepath} --networkId ${network_id} --masterAccount ${master_account}'"
+        echo "near --nodeUrl ${node_url} --walletUrl ${wallet_url} --helperUrl ${helper_url} --keyPath ${validator_key_filepath} --networkId ${network_id} --masterAccount ${master_account}"
     }
 
-    get_alias_str
+    if alias_str_contents="$(get_alias_str_contents)"; then
+        echo "alias ${COMMAND_NAME}='${alias_str_contents}'"
+        alias "${COMMAND_NAME}=${alias_str_contents}"
+    fi
     ```
-1. Copy the `alias local_near=.......` command that the above code outputted, and paste it into your shell (and optionally, into your `.bashrc`, `.bash_profile`, `.zshrc`, etc. if you want it to be available in every terminal you open)
-1. Run NEAR CLI commands using `local_near` in place of `near`, e.g.:
+1. If you'd like, copy the `alias local_near="......."` output into your `.bashrc`, `.bash_profile`, `.zshrc`, etc. if you want it to be available in every terminal you open
+1. Test that the command works by logging in to the local cluster using the local Wallet:
     ```
-    local_near dev-deploy --wasmFile path/to/your.wasm
+    local_near login
     ```
-1. If desired, you can persist the alias above to your `~/.bash_profile` (if on Mac) or `~/.bashrc` (if on Linux) so that it's always available.
+
+You can now run NEAR CLI commands using `local_near` in place of `near`. For example, to send some NEAR using the following (replacing `youraccount.test.near` with the account you created on login):
+    ```
+    local_near send youraccount.test.near test.near 1
+    ```
 
 ### Configure your dApp to use the local NEAR cluster running in Kurtosis
-Use the same values that you used to configure the NEAR CLI to set the configuration values of your dApp (e.g. the result of `nearNodeRpcUrl` sets the node URL of your dApp's config)
+Use the values outputted by `module exec` (e.g. `nearNodeRpcUrl`, `walletUrl`, etc.) to fill the configuration values of your dApp.
