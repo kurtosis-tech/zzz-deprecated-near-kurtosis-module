@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.6
+### Changes
+* Significantly automated the launching of NEAR local clusters by adding the `launch-local-near-cluster.sh` script and refactoring the README significantly
+
 # 0.5.5
 ### Fixes
 * Use indexer node version 0.2.0, which:
