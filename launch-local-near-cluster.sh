@@ -84,7 +84,7 @@ if ! helper_url="$(get_json_property "${exec_output_filepath}" "${HELPER_URL_PRO
     echo "Error: Couldn't extract the contract helper service URL from module exec logfile '${exec_output_filepath}'" >&2
     exit 1
 fi
-if ! explorer_url="$(get_json_property "${exec_output_filepath}" "${WALLET_URL_PROPERTY}")"; then
+if ! explorer_url="$(get_json_property "${exec_output_filepath}" "${EXPLORER_URL_PROPERTY}")"; then
     echo "Error: Couldn't extract the explorer URL from module exec logfile '${exec_output_filepath}'" >&2
     exit 1
 fi
@@ -104,13 +104,13 @@ echo "         local cluster (e.g. '${ALIAS_NAME} login'):"
 echo "  "
 echo "           ${alias_command}"
 echo "  "
-echo "  ACTION If you want the '${ALIAS_NAME}' command available in all your terminal windows, add the above alias into your .bash_profile/.bashrc/.zshrc"
-echo "         file and open a new terminal window"
+echo "  ACTION If you want the '${ALIAS_NAME}' command available in all your new terminal windows, add the above alias into your .bash_profile/.bashrc/.zshrc"
+echo "         file and open a new terminal window."
 echo "  "
 echo "  ACTION To stop your cluster:"
 echo "          1. Run '${KURTOSIS_CMD} enclave ls'"
-echo "          2. Copy the enclave ID that your NEAR cluster"
-echo "          3. Run '${KURTOSIS_CMD} enclave stop THE_ID_YOU_COPIED'"
+echo "          2. Copy the enclave ID that your NEAR cluster is running inside"
+echo "          3. Run '${KURTOSIS_CMD} enclave stop ENCLAVE_ID_YOU_COPIED'"
 echo "  "
 echo "  ACTION To remove stopped clusters, run '${KURTOSIS_CMD} clean'. You can also run '${KURTOSIS_CMD} clean -a' to stop & remove *all* clusters,"
 echo "         including running ones."
