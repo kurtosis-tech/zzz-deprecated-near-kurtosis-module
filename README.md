@@ -88,36 +88,48 @@ This can be a handy way to clear all your Kurtosis data.
     ```
     cd ~/near-kurtosis
     ```
-1. Bind the name of the file containing the most recent module output (which will have been saved in a file named `near-module-log_YYYY-MM-DDTHH.MM.SS.log`) to the `MODULE_OUTPUT_FILE` variable:
+1. Bind the name of the file containing the most recent module output (which will have been saved in a file named `near-module-log_YYYY-MM-DDTHH.MM.SS.log`) to the `MODULE_OUTPUT_FILEPATH` variable:
     ```
-    MODULE_OUTPUT_FILE="the-name-of-the-file.log"
+    MODULE_OUTPUT_FILEPATH="the-name-of-the-file.log"
     ```
-1. Extract the root validator key with the following command, replacing `YOUR_MODULE_OUTPUT_FILE` with:
-    ```
-    PROPERTY_KEY='"rootValidatorKey":'; cat YOUR_MODULE_OUTPUT_FILE | awk "/${PROPERTY_KEY}/,/\}/" | sed "s/${PROPERTY_KEY}//" | sed 's/},/}/' > neartosis-validator-key_.json
-    ```
-1. Copy the value of the `rootValidatorKey` property into a file somewhere on your machine called `neartosis_validator_key.json`, with contents like so (public & secret keys will be different on your machine; be careful not to copy the trailing `,`):
-    ```javascript
-    {
-        "account_id": "test.near",
-        "public_key": "ed25519:HM5NrScjfBDZH8hBJUGQnqEdD9rQdvMN9TvcuNz7pS9j",
-        "secret_key": "ed25519:5uxHbUY1SoW1EUPbuJgrYU5zR6bob7kLEN19TxaMg9pbvgyqsHFvduPj3ZFK3pn8DCb6ypHEimzFQ9hyFbc23Hh7"
+1. Paste the following chunk of code into your terminal, which will a) create a `neartosis-validator-key_YYYY-MM-DDTHH.MM.SS.json` file and b) output an `alias local_near=......` command for connecting to the NEAR environment in Kurtosis:
+    ```bash
+    # Constants
+    VALIDATOR_KEY_PROPERTY_W_QUOTES='"rootValidatorKey":'
+    NETWORK_ID_PROPERTY="networkName"
+    MASTER_ACCOUNT_PROPERTY="account_id"
+    NODE_RPC_URL_PROPERTY="nearNodeRpcUrl"
+    HELPER_URL_PROPERTY="contractHelperServiceUrl"
+    WALLET_URL_PROPERTY="walletUrl"
+
+    # Extracts values from the module execution output, and generates a 'local_near' alias for connecting to the NEAR cluster
+    function get_alias_str() {
+        if [ -z "${MODULE_OUTPUT_FILEPATH}" ]; then
+            echo "MODULE_OUTPUT_FILEPATH variable needs to be set" >&2
+            return 1
+        fi
+
+        function get_json_property() {
+            property_name="${1}"
+            cat "${MODULE_OUTPUT_FILEPATH}" | grep "${property_name}" | awk '{print $NF}' | sed 's/^"//' | sed 's/",*$//'
+        }
+
+        validator_key_filename="neartosis-validator-key_$(date +%FT%H.%M.%S).json"
+        validator_key_filepath="$(pwd)/${validator_key_filename}"
+        cat "${MODULE_OUTPUT_FILEPATH}" | awk "/${VALIDATOR_KEY_PROPERTY_W_QUOTES}/,/\}/" | sed "s/${VALIDATOR_KEY_PROPERTY_W_QUOTES}//" | sed 's/},/}/' > "${validator_key_filename}"
+
+        network_id="$(get_json_property "${NETWORK_ID_PROPERTY}")"
+        master_account="$(get_json_property "${MASTER_ACCOUNT_PROPERTY}")"
+        node_url="$(get_json_property "${NODE_RPC_URL_PROPERTY}")"
+        helper_url="$(get_json_property "${HELPER_URL_PROPERTY}")"
+        wallet_url="$(get_json_property "${WALLET_URL_PROPERTY}")"
+
+        echo "alias local_near='near --nodeUrl ${node_url} --walletUrl ${wallet_url} --helperUrl ${helper_url} --keyPath ${validator_key_filepath} --networkId ${network_id} --masterAccount ${master_account}'"
     }
+
+    get_alias_str
     ```
-1. 
-1. Enter the following in your terminal, replacing: TODOOOOOOO for people to get the variables
-
-    a) `NODE_URL` with the `nearNodeRpcUrl` value from the output above 
-
-    b) `WALLET_URL` with the `walletUrl` value from above
-
-    c) `HELPER_URL` with the `contractHelperServiceUrl` value from above
-    
-    d) `KEY_PATH` with the path to the `neartosis_validator_key.json` file you saved in the step above:
-
-    ```
-    alias local_near="near --nodeUrl NODE_URL --walletUrl WALLET_URL --helperUrl HELPER_URL --keyPath KEY_PATH --networkId localnet --masterAccount test.near"
-    ```
+1. Copy the `alias local_near=.......` command that the above code outputted, and paste it into your shell (and optionally, into your `.bashrc`, `.bash_profile`, `.zshrc`, etc. if you want it to be available in every terminal you open)
 1. Run NEAR CLI commands using `local_near` in place of `near`, e.g.:
     ```
     local_near dev-deploy --wasmFile path/to/your.wasm
