@@ -1,5 +1,11 @@
 # TBD
 
+# 0.5.5
+### Fixes
+* Use indexer node version 0.2.0, which:
+    * Disables fast blocks (so less CPU/memory usage)
+    * Is in archival mode, so won't lose transactions after 500 blocks
+
 # 0.5.4
 ### Fixes
 * Bump Wallet availability wait time to 6m (was 3m) because when your CPU is heavily-loaded (e.g. compiling something) it can take longer to compile the Wallet
