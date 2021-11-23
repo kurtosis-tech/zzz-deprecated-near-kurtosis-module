@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.5
 ### Fixes
 * Use indexer node version 0.2.0, which:
     * Disables fast blocks (so less CPU/memory usage)
