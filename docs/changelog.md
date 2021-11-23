@@ -1,4 +1,6 @@
 # TBD
+### Changes
+* Significantly automated the launching of NEAR local clusters by adding the `launch-local-near-cluster.sh` script and refactoring the README significantly
 
 # 0.5.3
 ### Fixes
