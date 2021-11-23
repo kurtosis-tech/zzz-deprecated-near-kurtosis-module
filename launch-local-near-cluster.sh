@@ -84,7 +84,7 @@ if ! helper_url="$(get_json_property "${exec_output_filepath}" "${HELPER_URL_PRO
     echo "Error: Couldn't extract the contract helper service URL from module exec logfile '${exec_output_filepath}'" >&2
     exit 1
 fi
-if ! explorer_url="$(get_json_property "${exec_output_filepath}" "${WALLET_URL_PROPERTY}")"; then
+if ! explorer_url="$(get_json_property "${exec_output_filepath}" "${EXPLORER_URL_PROPERTY}")"; then
     echo "Error: Couldn't extract the explorer URL from module exec logfile '${exec_output_filepath}'" >&2
     exit 1
 fi
