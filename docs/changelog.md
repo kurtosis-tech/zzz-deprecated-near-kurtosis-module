@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.4
 ### Fixes
 * Bump Wallet availability wait time to 6m (was 3m) because when your CPU is heavily-loaded (e.g. compiling something) it can take longer to compile the Wallet
 
