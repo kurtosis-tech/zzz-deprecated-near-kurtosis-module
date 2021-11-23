@@ -28,8 +28,9 @@ const AVAILABILITY_CHECK_CMD: string[] = [
     "ps aux | grep my_init | grep -v 'grep' | grep -v 'npm'",
 ]
 
-// The wallet takes about a minute to build, so we give it 3min to become available (2min sometimes was too little)
-const MAX_AVAILABILITY_CHECKS: number = 180;
+// The wallet takes about a minute to build on an unloaded CPU, but if your computer is doing something else CPU-intensive it can take much longer so we use 
+//  6 minutes to give tons of buffer
+const MAX_AVAILABILITY_CHECKS: number = 360;
 const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 1000;
 
 export class WalletInfo {
