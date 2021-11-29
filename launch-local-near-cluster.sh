@@ -114,6 +114,7 @@ alias_command="alias ${ALIAS_NAME}='near --nodeUrl ${node_url} --walletUrl ${wal
 echo "============================================================ SUCCESS ================================================================================"
 echo "  ACTION Paste the following in your terminal to declare the following variables so you can use them:"
 echo ""
+echo "           export ${NEAR_CLI_NEAR_ENV_ENVVAR}=\"${LOCALNET_NEAR_ENV}\""
 echo "           export ${NEAR_CLI_NETWORK_ID_ENVVAR}=\"${network_id}\""
 echo "           export ${NEAR_CLI_NODE_URL_ENVVAR}=\"${node_url}\""
 echo "           export ${NEAR_CLI_KEY_FILEPATH_ENVVAR}=\"${validator_key_filepath}\""

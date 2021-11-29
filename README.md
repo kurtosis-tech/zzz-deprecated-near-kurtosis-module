@@ -35,7 +35,7 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
 1. Follow the instructions that the script prints
 
 ### Manage your local NEAR cluster
-The cluster you started will continue to run on your local machine for as long as your Docker engine is running (which, in most cases, is for as long as you don't restart your computer). The cluster runs inside of a Kurtosis "enclave", an environment isolated from both your computer and other enclaves; in practice, this means that you can have multiple independent local NEAR clusters running on your machine simply be rerunning the `kurtosis module exec` command from the start of this guide.
+The cluster you started will continue to run on your local machine for as long as your Docker engine is running (which, in most cases, is for as long as you don't restart your computer). The cluster runs inside of a Kurtosis "enclave", an environment isolated from both your computer and other enclaves; in practice, this means that you can have multiple independent local NEAR clusters running on your machine simply by rerunning the `kurtosis module exec` command from the start of this guide.
 
 To see the status of your existing enclaves, run:
 
