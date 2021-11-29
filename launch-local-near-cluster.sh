@@ -20,6 +20,18 @@ NEAR_MODULE_IMAGE="kurtosistech/near-kurtosis-module"
 MODULE_EXEC_PARAMS='{"isWalletEnabled":true}'
 KURTOSIS_CMD="kurtosis"
 
+# Magic variables that the NEAR CLI will use if set (see https://github.com/near/near-cli/pull/885/files )
+NEAR_CLI_NEAR_ENV_ENVVAR="NEAR_ENV"
+NEAR_CLI_NETWORK_ID_ENVVAR="NEAR_CLI_LOCALNET_NETWORK_ID"
+NEAR_CLI_NODE_URL_ENVVAR="NEAR_NODE_URL"
+NEAR_CLI_KEY_FILEPATH_ENVVAR="NEAR_CLI_LOCALNET_KEY_PATH"
+NEAR_CLI_WALLET_URL_ENVVAR="NEAR_WALLET_URL"
+NEAR_CLI_CONTRACT_HELPER_URL_ENVVAR="NEAR_HELPER_URL"
+NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR="NEAR_HELPER_ACCOUNT"
+NEAR_CLI_EXPLORER_URL_ENVVAR="NEAR_EXPLORER_URL"
+
+# Tells the CLI that it should use the 'localnet' config from its config.json
+LOCALNET_NEAR_ENV="localnet"
 
 # ==================================================================================================
 #                                             Main Logic
@@ -68,6 +80,10 @@ if ! cat "${exec_output_filepath}" | awk "/${VALIDATOR_KEY_PROPERTY_W_QUOTES}/,/
     echo "Error: Couldn't extract the validator key JSON from module exec logfile '${exec_output_filepath}'" >&2
     exit 1
 fi
+if ! contract_helper_url="$(get_json_property "${exec_output_filepath}" "${HELPER_URL_PROPERTY}")"; then
+    echo "Error: Couldn't extract the contract helper URL from module exec logfile '${exec_output_filepath}'" >&2
+    exit 1
+fi
 if ! network_id="$(get_json_property "${exec_output_filepath}" "${NETWORK_ID_PROPERTY}")"; then
     echo "Error: Couldn't extract the network ID from module exec logfile '${exec_output_filepath}'" >&2
     exit 1
@@ -96,13 +112,20 @@ fi
 alias_command="alias ${ALIAS_NAME}='near --nodeUrl ${node_url} --walletUrl ${wallet_url} --helperUrl ${helper_url} --keyPath ${validator_key_filepath} --networkId ${network_id} --masterAccount ${master_account}'"
 
 echo "============================================================ SUCCESS ================================================================================"
-echo "  Explorer URL: ${explorer_url}"
-echo "  Wallet URL: ${wallet_url}"
+echo "  ACTION Paste the following in your terminal to declare the following variables so you can use them:"
+echo ""
+echo "           export ${NEAR_CLI_NETWORK_ID_ENVVAR}=\"${network_id}\""
+echo "           export ${NEAR_CLI_NODE_URL_ENVVAR}=\"${node_url}\""
+echo "           export ${NEAR_CLI_KEY_FILEPATH_ENVVAR}=\"${validator_key_filepath}\""
+echo "           export ${NEAR_CLI_WALLET_URL_ENVVAR}=\"${wallet_url}\""
+echo "           export ${NEAR_CLI_CONTRACT_HELPER_URL_ENVVAR}=\"${contract_helper_url}\""
+echo "           export ${NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR}=\"${master_account}\""
+echo "           export ${NEAR_CLI_EXPLORER_URL_ENVVAR}=\"${explorer_url}\""
 echo "  "
 echo "  ACTION Paste the following into your terminal now to use the '${ALIAS_NAME}' command as a replacement for the NEAR CLI for connecting to your"
 echo "         local cluster (e.g. '${ALIAS_NAME} login'):"
 echo "  "
-echo "           ${alias_command}"
+echo "         alias ${ALIAS_NAME}='${NEAR_CLI_NEAR_ENV_ENVVAR}=\"${LOCALNET_NEAR_ENV}\" ${NEAR_CLI_NETWORK_ID_ENVVAR}=\"${network_id}\" ${NEAR_CLI_NODE_URL_ENVVAR}=\"${node_url}\" ${NEAR_CLI_KEY_FILEPATH_ENVVAR}=\"${validator_key_filepath}\" ${NEAR_CLI_WALLET_URL_ENVVAR}=\"${wallet_url}\" ${NEAR_CLI_CONTRACT_HELPER_URL_ENVVAR}=\"${contract_helper_url}\" ${NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR}=\"${master_account}\" ${NEAR_CLI_EXPLORER_URL_ENVVAR}=\"${explorer_url}\" near --masterAccount ${master_account}'"
 echo "  "
 echo "  ACTION If you want the '${ALIAS_NAME}' command available in all your new terminal windows, add the above alias into your .bash_profile/.bashrc/.zshrc"
 echo "         file and open a new terminal window."
