@@ -21,6 +21,10 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
         1. Give Docker at least 4GB of memory
         1. Select "Apply & Restart"
         1. Wait until the whale icon in the bottom-left corner is green once more
+1. Update to the latest version of the NEAR CLI:
+    ```
+    npm install -g near-cli
+    ```
 1. Visit [this link](https://docs.kurtosistech.com/installation.html) to install the Kurtosis CLI (or upgrade it to latest if it's already installed)
 
 ### Launch the local NEAR cluster in Kurtosis
@@ -35,7 +39,7 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
 1. Follow the instructions that the script prints
 
 ### Manage your local NEAR cluster
-The cluster you started will continue to run on your local machine for as long as your Docker engine is running (which, in most cases, is for as long as you don't restart your computer). The cluster runs inside of a Kurtosis "enclave", an environment isolated from both your computer and other enclaves; in practice, this means that you can have multiple independent local NEAR clusters running on your machine simply be rerunning the `kurtosis module exec` command from the start of this guide.
+The cluster you started will continue to run on your local machine for as long as your Docker engine is running (which, in most cases, is for as long as you don't restart your computer). The cluster runs inside of a Kurtosis "enclave", an environment isolated from both your computer and other enclaves; in practice, this means that you can have multiple independent local NEAR clusters running on your machine simply by rerunning the `kurtosis module exec` command from the start of this guide.
 
 To see the status of your existing enclaves, run:
 
