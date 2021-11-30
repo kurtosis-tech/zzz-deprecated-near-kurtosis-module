@@ -1,4 +1,6 @@
 # TBD
+### Features
+* Make the launch-local-near-cluster.sh script better align with the tutorial on the NEAR website
 
 # 0.5.7
 ### Fixes
