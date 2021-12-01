@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Remove the `--masterAccount` flag from the `local_near` alias
 
 # 0.5.8
 ### Features
