@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.9
+### Fixes
+* Remove the `--masterAccount` flag from the `local_near` alias
+
 # 0.5.8
 ### Features
 * Make the launch-local-near-cluster.sh script better align with the tutorial on the NEAR website
