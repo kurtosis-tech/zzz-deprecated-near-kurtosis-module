@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.10
+### Fixes
+* Fixed a missing `'` at the end of the alias command
+
 # 0.5.9
 ### Fixes
 * Remove the `--masterAccount` flag from the `local_near` alias
