@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.10
 ### Fixes
 * Fixed a missing `'` at the end of the alias command
 
