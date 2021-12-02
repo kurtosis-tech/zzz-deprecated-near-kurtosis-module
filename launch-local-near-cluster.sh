@@ -31,7 +31,7 @@ NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR="NEAR_HELPER_ACCOUNT"
 NEAR_CLI_EXPLORER_URL_ENVVAR="NEAR_EXPLORER_URL"
 
 # Tells the CLI that it should use the 'localnet' config from its config.json
-LOCALNET_NEAR_ENV="localnet"
+LOCALNET_NEAR_ENV="local"
 
 # ==================================================================================================
 #                                             Main Logic
@@ -109,8 +109,6 @@ if ! wallet_url="$(get_json_property "${exec_output_filepath}" "${WALLET_URL_PRO
     exit 1
 fi
 
-alias_command="alias ${ALIAS_NAME}='near --nodeUrl ${node_url} --walletUrl ${wallet_url} --helperUrl ${helper_url} --keyPath ${validator_key_filepath} --networkId ${network_id} --masterAccount ${master_account}'"
-
 echo "============================================================ SUCCESS ================================================================================"
 echo "  ACTION Paste the following in your terminal to declare the following variables so you can use them:"
 echo ""
@@ -126,7 +124,7 @@ echo "  "
 echo "  ACTION Paste the following into your terminal now to use the '${ALIAS_NAME}' command as a replacement for the NEAR CLI for connecting to your"
 echo "         local cluster (e.g. '${ALIAS_NAME} login'):"
 echo "  "
-echo "         alias ${ALIAS_NAME}='${NEAR_CLI_NEAR_ENV_ENVVAR}=\"${LOCALNET_NEAR_ENV}\" ${NEAR_CLI_NETWORK_ID_ENVVAR}=\"${network_id}\" ${NEAR_CLI_NODE_URL_ENVVAR}=\"${node_url}\" ${NEAR_CLI_KEY_FILEPATH_ENVVAR}=\"${validator_key_filepath}\" ${NEAR_CLI_WALLET_URL_ENVVAR}=\"${wallet_url}\" ${NEAR_CLI_CONTRACT_HELPER_URL_ENVVAR}=\"${contract_helper_url}\" ${NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR}=\"${master_account}\" ${NEAR_CLI_EXPLORER_URL_ENVVAR}=\"${explorer_url}\" near --masterAccount ${master_account}'"
+echo "         alias ${ALIAS_NAME}='${NEAR_CLI_NEAR_ENV_ENVVAR}=\"${LOCALNET_NEAR_ENV}\" ${NEAR_CLI_NETWORK_ID_ENVVAR}=\"${network_id}\" ${NEAR_CLI_NODE_URL_ENVVAR}=\"${node_url}\" ${NEAR_CLI_KEY_FILEPATH_ENVVAR}=\"${validator_key_filepath}\" ${NEAR_CLI_WALLET_URL_ENVVAR}=\"${wallet_url}\" ${NEAR_CLI_CONTRACT_HELPER_URL_ENVVAR}=\"${contract_helper_url}\" ${NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR}=\"${master_account}\" ${NEAR_CLI_EXPLORER_URL_ENVVAR}=\"${explorer_url}\" near"
 echo "  "
 echo "  ACTION If you want the '${ALIAS_NAME}' command available in all your new terminal windows, add the above alias into your .bash_profile/.bashrc/.zshrc"
 echo "         file and open a new terminal window."
