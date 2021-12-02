@@ -31,7 +31,7 @@ NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR="NEAR_HELPER_ACCOUNT"
 NEAR_CLI_EXPLORER_URL_ENVVAR="NEAR_EXPLORER_URL"
 
 # Tells the CLI that it should use the 'localnet' config from its config.json
-LOCALNET_NEAR_ENV="localnet"
+LOCALNET_NEAR_ENV="local"
 
 # ==================================================================================================
 #                                             Main Logic
