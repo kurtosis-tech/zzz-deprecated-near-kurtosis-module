@@ -1,8 +1,8 @@
 # ============================ Base ============================
-FROM alpine:3.14 AS base
+FROM alpine:3.15 AS base
 
 # Unfortunately Alpine packages are updated in-place, and old versions are discarded so there's no way to use older versions and pin the NodeJS version
-RUN apk add --no-cache nodejs
+RUN apk add --no-cache --update nodejs-current
 WORKDIR /build
 
 COPY package.json .
