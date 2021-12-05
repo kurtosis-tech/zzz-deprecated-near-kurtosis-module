@@ -1,13 +1,15 @@
-import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
+import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "wamp";
 const IMAGE: string = "kurtosistech/near-explorer_wamp";
+const PORT_ID = "ws";
 const PORT_NUM: number = 8080;
-const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
+const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "WAMP_NEAR_EXPLORER_PORT": PORT_NUM.toString(),
@@ -36,11 +38,11 @@ export class ExplorerWampInfo {
 }
 
 export async function addExplorerWampService(
-    networkCtx: NetworkContext,
+    enclaveCtx: EnclaveContext,
     sharedWampBackendSecret: string,
 ): Promise<Result<ExplorerWampInfo, Error>> {
-    const usedPortsSet: Set<string> = new Set();
-    usedPortsSet.add(DOCKER_PORT_DESC)
+    const usedPorts: Map<string, PortSpec> = new Map();
+    usedPorts.set(PORT_ID, PORT_SPEC);
 
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(SHARED_WAMP_BACKEND_SECRET_ENVVAR, sharedWampBackendSecret);
@@ -49,30 +51,26 @@ export async function addExplorerWampService(
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
-            usedPortsSet,
+            usedPorts,
         ).withEnvironmentVariableOverrides(
             envVars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
-    const [serviceCtx, hostMachinePortBindings] = addServiceResult.value;
+    const serviceCtx  = addServiceResult.value;
 
     const internalUrl: string = buildWsUrl(SERVICE_ID, PORT_NUM);
 
-    const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
-    const formExternalUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
-        maybeHostMachinePortBinding,
-        buildWsUrl
-    );
-    if (formExternalUrlResult.isErr()) {
-        return err(formExternalUrlResult.error);
-    }
-    const maybeHostMachineUrl: string | undefined = formExternalUrlResult.value;
+    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+        serviceCtx.getMaybePublicIPAddress(),
+        serviceCtx.getPublicPorts().get(PORT_ID),
+        buildWsUrl,
+    )
 
     const result: ExplorerWampInfo = new ExplorerWampInfo(
         internalUrl,

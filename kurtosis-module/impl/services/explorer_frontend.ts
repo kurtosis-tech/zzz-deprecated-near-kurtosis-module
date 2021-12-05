@@ -1,13 +1,15 @@
-import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
+import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "frontend";
+const PORT_ID = "http";
 const IMAGE: string = "kurtosistech/near-explorer_frontend";
 const PORT_NUM: number = 3000;
-const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
+const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+
 const WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";
 const WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
 const NEAR_NETWORKS_ENVVAR: string = "NEAR_NETWORKS";
@@ -33,13 +35,13 @@ export class ExplorerFrontendInfo {
 }
 
 export async function addExplorerFrontendService(
-    networkCtx: NetworkContext, 
+    enclaveCtx: EnclaveContext, 
     wampInternalUrl: string,
     maybeHostMachineWampUrl: string | undefined,
     networkName: string,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
-    const usedPortsSet: Set<string> = new Set();
-    usedPortsSet.add(DOCKER_PORT_DESC)
+    const usedPorts: Map<string, PortSpec> = new Map();
+    usedPorts.set(PORT_ID, PORT_SPEC);
 
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
@@ -63,28 +65,24 @@ export async function addExplorerFrontendService(
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
-            usedPortsSet,
+            usedPorts,
         ).withEnvironmentVariableOverrides(
                 envVars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
-    const [serviceCtx, hostMachinePortBindings] = addServiceResult.value;
+    const serviceCtx = addServiceResult.value;
 
-    const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
-    const formUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
-        maybeHostMachinePortBinding,
+    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+        serviceCtx.getMaybePublicIPAddress(),
+        serviceCtx.getPublicPorts().get(PORT_ID),
         (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`,
     );
-    if (formUrlResult.isErr()) {
-        return err(formUrlResult.error);
-    }
-    const maybeHostMachineUrl: string | undefined = formUrlResult.value;
 
     const result: ExplorerFrontendInfo = new ExplorerFrontendInfo(maybeHostMachineUrl);
     return ok(result);
