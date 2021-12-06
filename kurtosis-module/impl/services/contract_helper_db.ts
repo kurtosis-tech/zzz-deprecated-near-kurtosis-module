@@ -1,13 +1,15 @@
-import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext } from "kurtosis-core-api-lib";
 import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL } from "../consts";
+import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "contract-helper-db";
+const PORT_ID: string = "postgres";
 const IMAGE: string = "postgres:13.4-alpine3.14";
 const PORT_NUM: number = 5432;
-const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
+const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+
 const POSTGRES_USER: string = "near";
 const POSTGRES_PASSWORD: string = "near";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
@@ -72,25 +74,25 @@ export class ContractHelperDbInfo {
     }
 }
 
-export async function addContractHelperDb(networkCtx: NetworkContext): Promise<Result<ContractHelperDbInfo, Error>> {
+export async function addContractHelperDb(enclaveCtx: EnclaveContext): Promise<Result<ContractHelperDbInfo, Error>> {
 
-    log.info("Adding contract helper DB running on port '" + DOCKER_PORT_DESC + "'");
-    const usedPortsSet: Set<string> = new Set();
-    usedPortsSet.add(DOCKER_PORT_DESC)
+    log.info("Adding contract helper DB running on port '" + PORT_NUM + "'");
+    const usedPorts: Map<string, PortSpec> = new Map();
+    usedPorts.set(PORT_ID, PORT_SPEC);
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(IMAGE).withUsedPorts(
-            usedPortsSet
+            usedPorts,
         ).withEnvironmentVariableOverrides(
             STATIC_ENVVARS
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
-    const [serviceCtx, hostPortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
+    const serviceCtx: ServiceContext = addServiceResult.value;
 
     const waitForAvailabilityResult: Result<null, Error> = await waitForContractHelperDbToBecomeAvailable(serviceCtx);
     if (waitForAvailabilityResult.isErr()) {

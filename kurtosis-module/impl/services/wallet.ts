@@ -1,13 +1,14 @@
-import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
+import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
-const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
 const IMAGE: string = "kurtosistech/near-wallet";
+const PORT_ID = "http";
+const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
 const CONTRACT_HELPER_URL_ENVVAR: string = "REACT_APP_ACCOUNT_HELPER_URL";
 const EXPLORER_URL_ENVVAR: string = "EXPLORER_URL";
@@ -47,14 +48,14 @@ export class WalletInfo {
 }
 
 export async function addWallet(
-    networkCtx: NetworkContext,
+    enclaveCtx: EnclaveContext,
     maybeHostMachineNearNodeRpcUrl: string | undefined,
     maybeHostMachineContractHelperUrl: string | undefined,
     maybeHostMachineExplorerUrl: string | undefined,
 ): Promise<Result<WalletInfo, Error>> {
-    log.info(`Adding wallet running on port '${DOCKER_PORT_DESC}'`);
-    const usedPortsSet: Set<string> = new Set();
-    usedPortsSet.add(DOCKER_PORT_DESC)
+    log.info(`Adding wallet running on port '${PORT_NUM}'`);
+    const usedPorts: Map<string, PortSpec> = new Map();
+    usedPorts.set(PORT_ID, PORT_SPEC);
 
     const envvars: Map<string, string> = new Map();
     if (maybeHostMachineNearNodeRpcUrl !== undefined) {
@@ -83,33 +84,29 @@ export async function addWallet(
         const result = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
-            usedPortsSet
+            usedPorts
         ).withEnvironmentVariableOverrides(
                 envvars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
-    const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
+    const serviceCtx = addServiceResult.value;
 
     const waitForAvailabilityResult = await waitUntilAvailable(serviceCtx)
     if (waitForAvailabilityResult.isErr()) {
         return err(waitForAvailabilityResult.error);
     }
 
-    const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
-    const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
-        maybeHostMachinePortBinding,
+    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+        serviceCtx.getMaybePublicIPAddress(),
+        serviceCtx.getPublicPorts().get(PORT_ID),
         (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
-    ) 
-    if (formHostMachineUrlResult.isErr()) {
-        return err(formHostMachineUrlResult.error);
-    }
-    const maybeHostMachineUrl: string | undefined = formHostMachineUrlResult.value;
+    )
 
     const result: WalletInfo = new WalletInfo(maybeHostMachineUrl)
 

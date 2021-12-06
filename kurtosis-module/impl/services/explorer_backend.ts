@@ -1,7 +1,6 @@
-import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
 // Explorer Backend
@@ -24,7 +23,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 }));
 
 export async function addExplorerBackendService(
-    networkCtx: NetworkContext,
+    enclaveCtx: EnclaveContext,
     nearNodeHostname: string,
     nearNodeRpcPortNum: number,
     indexerDbUsername: string,
@@ -58,7 +57,7 @@ export async function addExplorerBackendService(
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
