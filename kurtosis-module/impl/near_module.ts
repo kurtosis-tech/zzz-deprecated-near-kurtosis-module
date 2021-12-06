@@ -1,9 +1,7 @@
-import { NetworkContext, SharedPath, ContainerConfig } from "kurtosis-core-api-lib";
+import { EnclaveContext, SharedPath, ContainerConfig } from "kurtosis-core-api-lib";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
 import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, getPortNumFromHostMachinePortBinding, TCP_PROTOCOL, tryToFormHostMachineUrl } from "./consts";
-// import { addNearupService, NearupInfo } from "./services/nearup";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
 import { addIndexer, IndexerInfo } from "./services/indexer";
 import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wamp";
@@ -64,7 +62,7 @@ export class NearModule implements ExecutableKurtosisModule {
 
     // All this logic comes from translating https://github.com/near/docs/blob/975642ad49338bf8728a675def1f8bec8a780922/docs/local-setup/entire-setup.md
     //  into Kurtosis-compatible code
-    async execute(networkCtx: NetworkContext, serializedParams: string): Promise<Result<string, Error>> {
+    async execute(enclaveCtx: EnclaveContext, serializedParams: string): Promise<Result<string, Error>> {
         log.info("Serialized execute params '" + serializedParams + "'");
         let parseResult: any;
         try {
@@ -83,14 +81,14 @@ export class NearModule implements ExecutableKurtosisModule {
             JSON.parse(serializedParams),
         );
 
-        const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(networkCtx)
+        const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(enclaveCtx)
         if (addContractHelperDbServiceResult.isErr()) {
             return err(addContractHelperDbServiceResult.error);
         }
         const contractHelperDbInfo: ContractHelperDbInfo = addContractHelperDbServiceResult.value;
 
         const addIndexerResult: Result<IndexerInfo, Error> = await addIndexer(
-            networkCtx,
+            enclaveCtx,
             contractHelperDbInfo.getNetworkInternalHostname(),
             contractHelperDbInfo.getNetworkInternalPortNum(),
             contractHelperDbInfo.getDbUsername(),
@@ -111,7 +109,7 @@ export class NearModule implements ExecutableKurtosisModule {
         */
 
         const addContractHelperServiceResult: Result<ContractHelperServiceInfo, Error> = await addContractHelperService(
-            networkCtx,
+            enclaveCtx,
             contractHelperDbInfo.getNetworkInternalHostname(),
             contractHelperDbInfo.getNetworkInternalPortNum(),
             contractHelperDbInfo.getDbUsername(),
@@ -127,7 +125,7 @@ export class NearModule implements ExecutableKurtosisModule {
         const contractHelperServiceInfo: ContractHelperServiceInfo = addContractHelperServiceResult.value;
 
         const addExplorerWampResult: Result<ExplorerWampInfo, Error> = await addExplorerWampService(
-            networkCtx,
+            enclaveCtx,
             EXPLORER_WAMP_BACKEND_SHARED_SECRET
         );
         if (addExplorerWampResult.isErr()) {
@@ -136,7 +134,7 @@ export class NearModule implements ExecutableKurtosisModule {
         const explorerWampInfo: ExplorerWampInfo = addExplorerWampResult.value;
 
         const addExplorerBackendResult: Result<null, Error> = await addExplorerBackendService(
-            networkCtx,
+            enclaveCtx,
             indexerInfo.getNetworkInternalHostname(),
             indexerInfo.getNetworkInternalPortNum(),
             contractHelperDbInfo.getDbUsername(),
@@ -152,7 +150,7 @@ export class NearModule implements ExecutableKurtosisModule {
         }
 
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
-            networkCtx,
+            enclaveCtx,
             explorerWampInfo.getInternalUrl(),
             explorerWampInfo.getMaybeHostMachineUrl(),
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
@@ -165,7 +163,7 @@ export class NearModule implements ExecutableKurtosisModule {
         let maybeWalletHostMachineUrl: string | undefined = undefined;
         if (args.isWalletEnabled) {
             const addWalletResult: Result<WalletInfo, Error> = await addWallet(
-                networkCtx,
+                enclaveCtx,
                 indexerInfo.getMaybeHostMachineUrl(),
                 contractHelperServiceInfo.getMaybeHostMachineUrl(),
                 explorerFrontendInfo.getMaybeHostMachineUrl(),

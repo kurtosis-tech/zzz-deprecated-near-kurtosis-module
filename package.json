@@ -6,13 +6,11 @@
         "build"
     ],
     "dependencies": {
-        "grpc": "^1.24.11",
-        "kurtosis-module-api-lib": "0.10.0",
+        "kurtosis-module-api-lib": "0.12.3",
         "loglevel": "^1.7.1"
     },
     "devDependencies": {
         "@types/chai": "^4.2.21",
-        "@types/google-protobuf": "^3.15.5",
         "@types/mocha": "^9.0.0",
         "chai": "^4.3.4",
         "mocha": "^9.1.0",

@@ -1,5 +1,12 @@
 # TBD
 
+# 0.5.11
+### Features
+* Upgrade to `module-api-lib` 0.12.0, which is compatible with the latest version of Kurtosis
+
+### Removals
+* Removed the unused `nearup` service
+
 # 0.5.10
 ### Fixes
 * Fixed a missing `'` at the end of the alias command

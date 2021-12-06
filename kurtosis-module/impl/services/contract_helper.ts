@@ -1,13 +1,15 @@
-import { NetworkContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortBinding } from "kurtosis-core-api-lib";
+import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { DOCKER_PORT_PROTOCOL_SEPARATOR, EXEC_COMMAND_SUCCESS_EXIT_CODE, TCP_PROTOCOL, tryToFormHostMachineUrl } from "../consts";
+import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
+const PORT_ID = "rest";
 const PORT_NUM: number = 3000;
-const DOCKER_PORT_DESC: string = PORT_NUM.toString() + DOCKER_PORT_PROTOCOL_SEPARATOR + TCP_PROTOCOL;
+const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 const IMAGE: string = "kurtosistech/near-contract-helper";
+
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
 const NODE_RPC_URL_ENVVAR: string = "NODE_URL";
@@ -59,7 +61,7 @@ export class ContractHelperServiceInfo {
 }
 
 export async function addContractHelperService(
-    networkCtx: NetworkContext,
+    enclaveCtx: EnclaveContext,
     dbHostname: string,
     dbPortNum: number,
     dbUsername: string,
@@ -69,9 +71,9 @@ export async function addContractHelperService(
     nearupPort: number,
     validatorKey: Object,
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
-    log.info(`Adding contract helper service running on port '${DOCKER_PORT_DESC}'`);
-    const usedPortsSet: Set<string> = new Set();
-    usedPortsSet.add(DOCKER_PORT_DESC)
+    log.info(`Adding contract helper service running on port '${PORT_NUM}'`);
+    const usedPorts: Map<string, PortSpec> = new Map();
+    usedPorts.set(PORT_ID, PORT_SPEC);
 
     let validatorKeyStr: string;
     try {
@@ -107,28 +109,24 @@ export async function addContractHelperService(
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
-            usedPortsSet
+            usedPorts
         ).withEnvironmentVariableOverrides(
             envvars
         ).build();
         return ok(result);
     }
     
-    const addServiceResult: Result<[ServiceContext, Map<string, PortBinding>], Error> = await networkCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
-    const [serviceCtx, hostMachinePortBindings]: [ServiceContext, Map<string, PortBinding>] = addServiceResult.value;
-    const maybeHostMachinePortBinding: PortBinding | undefined = hostMachinePortBindings.get(DOCKER_PORT_DESC);
+    const serviceCtx: ServiceContext = addServiceResult.value;
 
-    const formHostMachineUrlResult: Result<string | undefined, Error> = tryToFormHostMachineUrl(
-        maybeHostMachinePortBinding,
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
+    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+        serviceCtx.getMaybePublicIPAddress(),
+        serviceCtx.getPublicPorts().get(PORT_ID),
+        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`,
     )
-    if (formHostMachineUrlResult.isErr()) {
-        return err(formHostMachineUrlResult.error);
-    }
-    const maybeHostMachineUrl: string | undefined = formHostMachineUrlResult.value;
 
     const result: ContractHelperServiceInfo = new ContractHelperServiceInfo(
         SERVICE_ID,
