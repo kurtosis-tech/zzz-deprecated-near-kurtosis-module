@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.11
 ### Features
 * Upgrade to `module-api-lib` 0.12.0, which is compatible with the latest version of Kurtosis
 
