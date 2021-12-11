@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Changed the approach we were using to start the Wallet, so that the Wallet now starts nearly instantly
 
 # 0.5.11
 ### Features

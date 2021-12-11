@@ -6,20 +6,32 @@ import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
-const IMAGE: string = "kurtosistech/near-wallet";
+const IMAGE: string = "kurtosistech/near-wallet:0.2.0";
 const PORT_ID = "http";
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
-const CONTRACT_HELPER_URL_ENVVAR: string = "REACT_APP_ACCOUNT_HELPER_URL";
-const EXPLORER_URL_ENVVAR: string = "EXPLORER_URL";
-const NODE_URL_ENVVAR: string = "REACT_APP_NODE_URL";
-const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "REACT_APP_IS_MAINNET": "false",
-    "REACT_APP_NETWORK_ID": "localnet",
+// These variable names come from https://github.com/near/near-wallet/blob/master/packages/frontend/src/config.js
+const CONTRACT_HELPER_JS_VAR: string = "ACCOUNT_HELPER_URL";
+const EXPLORER_URL_JS_VAR: string = "EXPLORER_URL";
+const NODE_URL_JS_VAR: string = "NODE_URL";
+const STATIC_JS_VARS: Map<string, string> = new Map(Object.entries({
+    "IS_MAINNET": "false",
+    "NETWORK_ID": "localnet",
     // TODO make this dynamic, from the validator key that comes back from indexer node startup
-    "REACT_APP_ACCOUNT_ID_SUFFIX": "test.near",
-    "REACT_APP_ACCESS_KEY_FUNDING_AMOUNT": "3000000000000000000000000", // TODO is this right???
+    "ACCOUNT_ID_SUFFIX": "test.near",
+    "ACCESS_KEY_FUNDING_AMOUNT": "3000000000000000000000000", // TODO is this right???
 }))
+
+// The glob that identifies the Parcel-bundled JS file containing the Wallet code, which we'll
+//  modify to insert the environment variables we want
+const WALLET_JS_FILE_GLOB = "/var/www/html/wallet/src*js";
+
+// From the Wallet Dockerfile
+// We override this so that we can insert our desired envvars into the Wallet's source Javascript file
+const ORIGINAL_WALLET_ENTRYPOINT_COMMAND = "/sbin/my_init --";
+
+// sed delimiter that we'll use when sed-ing the Wallet JS file, and which the JS variables cannot contain
+const JS_REPLACEMENT_SED_DELIMITER = "$"
 
 // Checks if the Wallet container is available by determining if the NginX server is running, which only
 // happens after we build the Wallet to pick up the envvars (see the Wallet Dockerfile for more info) 
@@ -29,9 +41,7 @@ const AVAILABILITY_CHECK_CMD: string[] = [
     "ps aux | grep my_init | grep -v 'grep' | grep -v 'npm'",
 ]
 
-// The wallet takes about a minute to build on an unloaded CPU, but if your computer is doing something else CPU-intensive it can take much longer so we use 
-//  6 minutes to give tons of buffer
-const MAX_AVAILABILITY_CHECKS: number = 360;
+const MAX_AVAILABILITY_CHECKS: number = 30;
 const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 1000;
 
 export class WalletInfo {
@@ -57,37 +67,50 @@ export async function addWallet(
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PORT_SPEC);
 
-    const envvars: Map<string, string> = new Map();
+    // Javascript variables that will be slotted into the Wallet's source JS code
+    const jsVars: Map<string, string> = new Map();
     if (maybeHostMachineNearNodeRpcUrl !== undefined) {
-        envvars.set(
-            NODE_URL_ENVVAR,
+        jsVars.set(
+            NODE_URL_JS_VAR,
             maybeHostMachineNearNodeRpcUrl
         );
     }
     if (maybeHostMachineContractHelperUrl !== undefined) {
-        envvars.set(
-            CONTRACT_HELPER_URL_ENVVAR,
+        jsVars.set(
+            CONTRACT_HELPER_JS_VAR,
             maybeHostMachineContractHelperUrl
         );
     }
     if (maybeHostMachineExplorerUrl !== undefined) {
-        envvars.set(
-            EXPLORER_URL_ENVVAR,
+        jsVars.set(
+            EXPLORER_URL_JS_VAR,
             maybeHostMachineExplorerUrl
         )
     }
-    for (let [key, value] of STATIC_ENVVARS.entries()) {
-        envvars.set(key, value);
+    for (let [key, value] of STATIC_JS_VARS.entries()) {
+        jsVars.set(key, value);
     }
+
+    const generateJsUpdatingCommandResult = generateJsSrcUpdatingCommands(jsVars);
+    if (generateJsUpdatingCommandResult.isErr()) {
+        return err(generateJsUpdatingCommandResult.error);
+    }
+    const commandsToRun = generateJsUpdatingCommandResult.value;
+    commandsToRun.push(ORIGINAL_WALLET_ENTRYPOINT_COMMAND)
+    const singleCmdStringToRun = commandsToRun.join(" && ");
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirectory: SharedPath) => {
         const result = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
             usedPorts
-        ).withEnvironmentVariableOverrides(
-                envvars
-        ).build();
+        ).withEntrypointOverride([
+            // If we don't override the entrypoint, it gets set to starting the NginX server that serves the Wallet assets
+            "sh", 
+            "-c",
+        ]).withCmdOverride([
+            singleCmdStringToRun,
+        ]).build();
         return ok(result);
     }
     
@@ -130,4 +153,35 @@ async function waitUntilAvailable(serviceCtx: ServiceContext): Promise<Result<nu
     return err(new Error(
         `The Wallet container didn't become available even after ${MAX_AVAILABILITY_CHECKS} checks with ${MILLIS_BETWEEN_AVAILABILITY_CHECKS}ms between checks`
     ));
+}
+
+// The NEAR Wallet is bundled using Parcel down into assets that get served statically via NginX
+// Parcel-bundled apps only read environment variables at *build* time, so the only way to
+//  modify the Wallet's behaviour would be to set environemnt variables and rebuild the Wallet inside Docker
+// Unfortunately, building the Wallet in the Docker image is both slow (2+ minutes) and resource-intensive
+// To get around this, we generate a giant command to 'sed' the Parcel-bundled JS to set the variables we need
+// See also: https://github.com/near/near-wallet/issues/80
+function generateJsSrcUpdatingCommands(jsVars: Map<string, string>): Result<string[], Error> {
+    const verifyEnvvarExitenceFuncName = "verify_envvar_existence"
+    const declareEnvvarExistenceFuncStr = `${verifyEnvvarExitenceFuncName} () { if ! grep "\${1}" ${WALLET_JS_FILE_GLOB}; then echo "Wallet source JS file is missing expected environment variable '\${1}'"; return 1; fi; }`
+
+    const commandFragments: string[] = [ declareEnvvarExistenceFuncStr ]
+    for (let [key, value] of jsVars.entries()) {
+        if (key.includes(JS_REPLACEMENT_SED_DELIMITER)) {
+            return err(new Error(`Cannot insert new value for variable '${key}' in the Wallet JS file; its name includes our sed delimiter character '${JS_REPLACEMENT_SED_DELIMITER}`))
+        }
+        if (value.includes(JS_REPLACEMENT_SED_DELIMITER)) {
+            return err(new Error(`Cannot insert value '${value}' for variable '${key}' in the Wallet JS file because the value includes our sed delimiter character '${JS_REPLACEMENT_SED_DELIMITER}`))
+        }
+        const verifyEnvvarExistenceCommand = `${verifyEnvvarExitenceFuncName} "${key}"`;
+        commandFragments.push(verifyEnvvarExistenceCommand);
+
+        // Parcel envvars get set with a bunch of sequences of this constant-declaration, constant-assignemnt format:
+        // ....var v="https://api.moonpay.com";exports.MOONPAY_API_URL=v;....
+        // We therefore look for the constant-assignment and overwrite the value with our constant string instead
+        const updateJsFileCommand = `sed -i -E 's${JS_REPLACEMENT_SED_DELIMITER}exports.${key}=[A-Za-z]{1,2};${JS_REPLACEMENT_SED_DELIMITER}exports.${key}="${value}";${JS_REPLACEMENT_SED_DELIMITER}' ${WALLET_JS_FILE_GLOB}`
+        commandFragments.push(updateJsFileCommand);
+    }
+
+    return ok(commandFragments);
 }

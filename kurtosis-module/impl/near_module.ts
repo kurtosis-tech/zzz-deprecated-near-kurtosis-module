@@ -161,7 +161,7 @@ export class NearModule implements ExecutableKurtosisModule {
         const explorerFrontendInfo: ExplorerFrontendInfo = addExplorerFrontendResult.value;
 
         let maybeWalletHostMachineUrl: string | undefined = undefined;
-        if (args.isWalletEnabled) {
+        // if (args.isWalletEnabled) {
             const addWalletResult: Result<WalletInfo, Error> = await addWallet(
                 enclaveCtx,
                 indexerInfo.getMaybeHostMachineUrl(),
@@ -173,7 +173,7 @@ export class NearModule implements ExecutableKurtosisModule {
             }
             const walletInfo: WalletInfo = addWalletResult.value;
             maybeWalletHostMachineUrl = walletInfo.getMaybeHostMachineUrl();
-        }
+        // }
 
         const resultObj: ExecuteResult = new ExecuteResult(
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
