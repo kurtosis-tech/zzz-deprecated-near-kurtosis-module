@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.12
 ### Changes
 * All NEAR networks now start with a Wallet
 * The module no longer requires any parameters
