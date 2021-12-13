@@ -1,5 +1,13 @@
 # TBD
 
+# 0.5.12
+### Changes
+* All NEAR networks now start with a Wallet
+* The module no longer requires any parameters
+
+### Fixes
+* Changed the approach we were using to start the Wallet, so that the Wallet now starts nearly instantly
+
 # 0.5.11
 ### Features
 * Upgrade to `module-api-lib` 0.12.0, which is compatible with the latest version of Kurtosis

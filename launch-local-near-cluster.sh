@@ -17,7 +17,6 @@ WALLET_URL_PROPERTY="walletUrl"
 ALIAS_NAME="local_near"
 NEAR_KURTOSIS_DIRPATH="${HOME}/.neartosis"
 NEAR_MODULE_IMAGE="kurtosistech/near-kurtosis-module"
-MODULE_EXEC_PARAMS='{"isWalletEnabled":true}'
 KURTOSIS_CMD="kurtosis"
 
 # Magic variables that the NEAR CLI will use if set (see https://github.com/near/near-cli/pull/885/files )
@@ -56,8 +55,8 @@ if ! mkdir -p "${module_exec_dirpath}"; then
 fi
 
 exec_output_filepath="${module_exec_dirpath}/exec-output.log"
-if ! "${KURTOSIS_CMD}" module exec "${NEAR_MODULE_IMAGE}" --execute-params "${MODULE_EXEC_PARAMS}" | tee "${exec_output_filepath}"; then
-    echo "Error: An error occurred executing module '${NEAR_MODULE_IMAGE}' with execute params '${MODULE_EXEC_PARAMS}'" >&2
+if ! "${KURTOSIS_CMD}" module exec "${NEAR_MODULE_IMAGE}" | tee "${exec_output_filepath}"; then
+    echo "Error: An error occurred executing module '${NEAR_MODULE_IMAGE}'" >&2
     exit 1
 fi
 
