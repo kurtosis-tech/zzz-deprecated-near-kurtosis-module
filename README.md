@@ -21,11 +21,11 @@ _NOTE: If you're viewing these instructions on Github, all code blocks can be co
         1. Give Docker at least 4GB of memory
         1. Select "Apply & Restart"
         1. Wait until the whale icon in the bottom-left corner is green once more
+1. Visit [this link](https://docs.kurtosistech.com/installation.html) to install the Kurtosis CLI (or upgrade it to latest if it's already installed)
 1. Update to the latest version of the NEAR CLI:
     ```
     npm install -g near-cli
     ```
-1. Visit [this link](https://docs.kurtosistech.com/installation.html) to install the Kurtosis CLI (or upgrade it to latest if it's already installed)
 
 ### Launch the local NEAR cluster in Kurtosis
 1. Save [this script](./launch-local-near-cluster.sh) to your local machine (which can be used to start arbitrary numbers of NEAR clusters):
