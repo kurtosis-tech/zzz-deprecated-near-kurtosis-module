@@ -1,4 +1,6 @@
 # TBD
+### Changes
+* Moved the Kurtosis CLI installation in the "Install Prerequisites" section up to 2, to make it more obvious
 
 # 0.5.12
 ### Changes
