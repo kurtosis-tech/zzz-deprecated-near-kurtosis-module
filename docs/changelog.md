@@ -3,6 +3,9 @@
 * Moved the Kurtosis CLI installation in the "Install Prerequisites" section up to 2, to make it more obvious
 * Removed the quickstart docs here in favor of [the official NEAR docs](https://docs.near.org/docs/tools/kurtosis-localnet)
 
+### Fixes
+* Added a guard to avoid reinitializing the config directory inside the indexer if it's already initialized, which will help users restart stopped environments
+
 # 0.5.12
 ### Changes
 * All NEAR networks now start with a Wallet

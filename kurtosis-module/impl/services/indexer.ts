@@ -5,7 +5,9 @@ import { EXEC_COMMAND_SUCCESS_EXIT_CODE, tryToFormHostMachineUrl } from "../cons
 import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "indexer"
-const IMAGE: string = "kurtosistech/near-indexer-for-explorer:0.2.0";
+// TODO UPDATE
+// const IMAGE: string = "kurtosistech/near-indexer-for-explorer:0.2.0";
+const IMAGE: string = "test-new-indexer";
 const PORT_NUM: number = 3030;
 const PORT_ID = "rpc";
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
