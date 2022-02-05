@@ -6,9 +6,12 @@ import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "indexer"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:0.2.0";
-const PORT_NUM: number = 3030;
-const PORT_ID = "rpc";
-const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const RPC_PORT_NUM: number = 3030;
+const RPC_PORT_ID = "rpc";
+const RPC_PORT_SPEC = new PortSpec(RPC_PORT_NUM, PortProtocol.TCP);
+const GOSSIP_PORT_NUM: number = 24567;
+const GOSSIP_PORT_ID = "gossip";
+const GOSSIP_PORT_SPEC = new PortSpec(GOSSIP_PORT_NUM, PortProtocol.TCP);
 
 const DATABASE_URL_ENVVAR = "DATABASE_URL";
 
@@ -67,7 +70,8 @@ export async function addIndexer(
 ): Promise<Result<IndexerInfo, Error>> {
     log.info(`Adding indexer service...`);
     const usedPorts: Map<string, PortSpec> = new Map();
-    usedPorts.set(PORT_ID, PORT_SPEC);
+    usedPorts.set(RPC_PORT_ID, RPC_PORT_SPEC);
+    usedPorts.set(GOSSIP_PORT_ID, GOSSIP_PORT_SPEC);
 
     const envvars: Map<string, string> = new Map();
     envvars.set(
@@ -115,13 +119,13 @@ export async function addIndexer(
 
     const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
         serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
+        serviceCtx.getPublicPorts().get(RPC_PORT_ID),
         (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
     )
 
     const result: IndexerInfo = new IndexerInfo(
         SERVICE_ID,
-        PORT_NUM,
+        RPC_PORT_NUM,
         maybeHostMachineUrl,
         validatorKey,
     );
