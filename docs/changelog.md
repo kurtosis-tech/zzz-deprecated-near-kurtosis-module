@@ -1,10 +1,18 @@
 # TBD
+### Fixes
+* Added a guard to avoid reinitializing the database & config directory inside the indexer if it's already initialized, which will help users restart stopped environments
+* Updated to be based on indexer-for-explorer 0.10.10, which is itself based on nearcore 1.24.0
+
+# 0.5.13
+### Features
+* Expose the gossip port on the indexer/NEAR node as well
+
 ### Changes
 * Moved the Kurtosis CLI installation in the "Install Prerequisites" section up to 2, to make it more obvious
 * Removed the quickstart docs here in favor of [the official NEAR docs](https://docs.near.org/docs/tools/kurtosis-localnet)
 
 ### Fixes
-* Added a guard to avoid reinitializing the config directory inside the indexer if it's already initialized, which will help users restart stopped environments
+* Add the `config init` to our CI
 
 # 0.5.12
 ### Changes
