@@ -7,7 +7,7 @@ import { ContainerConfigSupplier } from "../near_module";
 const SERVICE_ID: ServiceID = "indexer"
 // TODO DEBUGGING
 // const IMAGE: string = "kurtosistech/near-indexer-for-explorer:0.2.0";
-const IMAGE: string = "test-indexer";
+const IMAGE: string = "kurtosistech/near-indexer-for-explorer:2022-02-09";
 const RPC_PORT_NUM: number = 3030;
 const RPC_PORT_ID = "rpc";
 const RPC_PORT_SPEC = new PortSpec(RPC_PORT_NUM, PortProtocol.TCP);

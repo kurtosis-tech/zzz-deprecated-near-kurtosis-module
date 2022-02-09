@@ -8,7 +8,9 @@ const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
-const IMAGE: string = "kurtosistech/near-contract-helper";
+// TODO DEBUGGING
+// const IMAGE: string = "kurtosistech/near-contract-helper";
+const IMAGE: string = "kurtosistech/near-contract-helper:2022-02-09";
 
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";

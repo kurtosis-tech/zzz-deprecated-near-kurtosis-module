@@ -6,7 +6,9 @@ import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "frontend";
 const PORT_ID = "http";
-const IMAGE: string = "kurtosistech/near-explorer_frontend";
+// TODO DEBUGGING
+// const IMAGE: string = "kurtosistech/near-explorer_frontend";
+const IMAGE: string = "kurtosistech/near-explorer_frontend:2022-02-09";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
