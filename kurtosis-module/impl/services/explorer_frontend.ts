@@ -4,7 +4,7 @@ import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
-const SERVICE_ID: ServiceID = "frontend";
+const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
 // TODO DEBUGGING
 // const IMAGE: string = "kurtosistech/near-explorer_frontend";

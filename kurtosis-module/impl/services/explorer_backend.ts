@@ -4,7 +4,7 @@ import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
 
 // Explorer Backend
-const SERVICE_ID: ServiceID = "backend";
+const SERVICE_ID: ServiceID = "explorer-backend";
 // TODO DEBUGGIN
 // const IMAGE: string = "kurtosistech/near-explorer_backend";
 const IMAGE: string = "kurtosistech/near-explorer_backend:2022-02-09";

@@ -4,7 +4,7 @@ import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE, tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
-const SERVICE_ID: ServiceID = "indexer"
+const SERVICE_ID: ServiceID = "indexer-node"
 // TODO DEBUGGING
 // const IMAGE: string = "kurtosistech/near-indexer-for-explorer:0.2.0";
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:2022-02-09";
