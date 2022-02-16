@@ -10,10 +10,27 @@ const SERVICE_ID: ServiceID = "explorer-backend";
 const IMAGE: string = "kurtosistech/near-explorer_backend:2022-02-09";
 const NEAR_NODE_RPC_URL_ENVVAR: string = "NEAR_RPC_URL";
 
-const NEAR_INDEXER_DATABASE_USERNAME_ENVVAR: string = "NEAR_INDEXER_DATABASE_USERNAME";
-const NEAR_INDEXER_DATABASE_PASSWORD_ENVVAR: string = "NEAR_INDEXER_DATABASE_PASSWORD";
-const NEAR_INDEXER_DATABASE_HOST_ENVVAR: string = "NEAR_INDEXER_DATABASE_HOST";
-const NEAR_INDEXER_DATABASE_NAME_ENVVAR: string = "NEAR_INDEXER_DATABASE_NAME";
+// These environment variables come from https://github.com/near/near-explorer/blob/master/backend/config/env-indexer-mainnet
+const NEAR_READ_ONLY_INDEXER_DATABASE_USERNAME_ENVVAR: string = "NEAR_READ_ONLY_INDEXER_DATABASE_USERNAME";
+const NEAR_READ_ONLY_INDEXER_DATABASE_PASSWORD_ENVVAR: string = "NEAR_READ_ONLY_INDEXER_DATABASE_PASSWORD";
+const NEAR_READ_ONLY_INDEXER_DATABASE_HOST_ENVVAR: string =     "NEAR_READ_ONLY_INDEXER_DATABASE_HOST";
+const NEAR_READ_ONLY_INDEXER_DATABASE_NAME_ENVVAR: string =     "NEAR_READ_ONLY_INDEXER_DATABASE_NAME";
+
+// These environment variables come from https://github.com/near/near-explorer/blob/master/backend/config/env-indexer-mainnet
+const NEAR_READ_ONLY_ANALYTICS_DATABASE_USERNAME_ENVVAR: string = "NEAR_READ_ONLY_ANALYTICS_DATABASE_USERNAME";
+const NEAR_READ_ONLY_ANALYTICS_DATABASE_PASSWORD_ENVVAR: string = "NEAR_READ_ONLY_ANALYTICS_DATABASE_PASSWORD";
+const NEAR_READ_ONLY_ANALYTICS_DATABASE_HOST_ENVVAR: string = "NEAR_READ_ONLY_ANALYTICS_DATABASE_HOST";
+const NEAR_READ_ONLY_ANALYTICS_DATABASE_NAME_ENVVAR: string = "NEAR_READ_ONLY_ANALYTICS_DATABASE_NAME";
+
+// These environment variables come from https://github.com/near/near-explorer/blob/master/backend/config/env-indexer-mainnet
+const NEAR_READ_ONLY_TELEMETRY_DATABASE_USERNAME_ENVVAR: string = "NEAR_READ_ONLY_TELEMETRY_DATABASE_USERNAME";
+const NEAR_READ_ONLY_TELEMETRY_DATABASE_PASSWORD_ENVVAR: string = "NEAR_READ_ONLY_TELEMETRY_DATABASE_PASSWORD";
+const NEAR_READ_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR: string = "NEAR_READ_ONLY_TELEMETRY_DATABASE_HOST";
+const NEAR_READ_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR: string = "NEAR_READ_ONLY_TELEMETRY_DATABASE_NAME";
+const NEAR_WRITE_ONLY_TELEMETRY_DATABASE_USERNAME_ENVVAR: string = "NEAR_WRITE_ONLY_TELEMETRY_DATABASE_USERNAME";
+const NEAR_WRITE_ONLY_TELEMETRY_DATABASE_PASSWORD_ENVVAR: string = "NEAR_WRITE_ONLY_TELEMETRY_DATABASE_PASSWORD";
+const NEAR_WRITE_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR: string = "NEAR_WRITE_ONLY_TELEMETRY_DATABASE_HOST";
+const NEAR_WRITE_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR: string = "NEAR_WRITE_ONLY_TELEMETRY_DATABASE_NAME";
 
 const WAMP_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
@@ -32,16 +49,37 @@ export async function addExplorerBackendService(
     indexerDbUserPassword: string,
     indexerDbHostname: string,
     indexerDbName: string,
+    analyticsDbName: string,
+    telemetryDbName: string,
     wampInternalUrl: string,
     sharedWampBackendSecret: string,
     networkName: string,
 ): Promise<Result<null, Error>> {
     const envVars: Map<string, string> = new Map([
         [NETWORK_NAME_ENVVAR, networkName],
-        [NEAR_INDEXER_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
-        [NEAR_INDEXER_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
-        [NEAR_INDEXER_DATABASE_HOST_ENVVAR, indexerDbHostname],
-        [NEAR_INDEXER_DATABASE_NAME_ENVVAR, indexerDbName],
+
+        // Indexer DB envvars
+        [NEAR_READ_ONLY_INDEXER_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
+        [NEAR_READ_ONLY_INDEXER_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
+        [NEAR_READ_ONLY_INDEXER_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_READ_ONLY_INDEXER_DATABASE_NAME_ENVVAR, indexerDbName],
+
+        // Analytics DB envvars
+        [NEAR_READ_ONLY_ANALYTICS_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
+        [NEAR_READ_ONLY_ANALYTICS_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
+        [NEAR_READ_ONLY_ANALYTICS_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_READ_ONLY_ANALYTICS_DATABASE_NAME_ENVVAR, analyticsDbName],
+
+        // Telemetry DB envvars
+        [NEAR_READ_ONLY_TELEMETRY_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
+        [NEAR_READ_ONLY_TELEMETRY_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
+        [NEAR_READ_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_READ_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR, telemetryDbName],
+        [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
+        [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
+        [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR, telemetryDbName],
+
         [WAMP_URL_ENVVAR, wampInternalUrl],
         [SHARED_WAMP_BACKEND_SECRET_ENVVAR, sharedWampBackendSecret],
         [NEAR_NODE_RPC_URL_ENVVAR, `http://${nearNodeHostname}:${nearNodeRpcPortNum}`],

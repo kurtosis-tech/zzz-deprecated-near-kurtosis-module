@@ -18,9 +18,14 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 }));
 
 const INDEXER_DB: string = "indexer";
+const ANALYTICS_DB: string = "analytics";
+const TELEMETRY_DB: string = "telemetry";
+
 // DBs to initialize
 const DBS_TO_INITIALIZE: Set<string> = new Set([
     INDEXER_DB,
+    ANALYTICS_DB,
+    TELEMETRY_DB,
 ])
 const MAX_AVAILABILITY_CHECK_RETRIES: number = 10;
 const MILLIS_BETWEEN_AVAILABILITY_CHECK_RETRIES: number = 1000;
@@ -38,19 +43,25 @@ export class ContractHelperDbInfo {
     private readonly dbUsername: string;
     private readonly dbUserPassword: string;
     private readonly indexerDb: string;
+    private readonly analyticsDb: string;
+    private readonly telemetryDb: string;
 
     constructor(
         networkInternalHostname: string,
         networkInternalPortNum: number,
         dbUsername: string,
         dbUserPassword: string,
-        indexerDb: string
+        indexerDb: string,
+        analyticsDb: string,
+        telemetryDb: string,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPortNum = networkInternalPortNum;
         this.dbUsername = dbUsername;
         this.dbUserPassword = dbUserPassword;
         this.indexerDb = indexerDb;
+        this.analyticsDb = analyticsDb;
+        this.telemetryDb = telemetryDb;
     }
 
     public getNetworkInternalHostname(): string {
@@ -71,6 +82,14 @@ export class ContractHelperDbInfo {
 
     public getIndexerDb(): string {
         return this.indexerDb;
+    }
+
+    public getAnalyticsDb(): string {
+        return this.analyticsDb;
+    }
+
+    public getTelemetryDb(): string {
+        return this.telemetryDb;
     }
 }
 
@@ -126,6 +145,8 @@ export async function addContractHelperDb(enclaveCtx: EnclaveContext): Promise<R
         POSTGRES_USER,
         POSTGRES_PASSWORD,
         INDEXER_DB,
+        ANALYTICS_DB,
+        TELEMETRY_DB,
     );
 
     return ok(result);
