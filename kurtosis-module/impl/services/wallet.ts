@@ -6,9 +6,7 @@ import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
-// TODO DEBUGGING
-// const IMAGE: string = "kurtosistech/near-wallet:0.2.0";
-const IMAGE: string = "kurtosistech/near-wallet:2022-02-09";
+const IMAGE: string = "kurtosistech/near-wallet:17684565";
 const PORT_ID = "http";
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
