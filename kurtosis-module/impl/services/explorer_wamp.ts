@@ -4,7 +4,7 @@ import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
-const SERVICE_ID: ServiceID = "wamp";
+const SERVICE_ID: ServiceID = "explorer-wamp";
 const IMAGE: string = "kurtosistech/near-explorer_wamp";
 const PORT_ID = "ws";
 const PORT_NUM: number = 8080;

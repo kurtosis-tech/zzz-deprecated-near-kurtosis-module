@@ -109,6 +109,8 @@ export class NearModule implements ExecutableKurtosisModule {
             contractHelperDbInfo.getDbPassword(),
             contractHelperDbInfo.getNetworkInternalHostname(),
             contractHelperDbInfo.getIndexerDb(),
+            contractHelperDbInfo.getAnalyticsDb(),
+            contractHelperDbInfo.getTelemetryDb(),
             explorerWampInfo.getInternalUrl(),
             EXPLORER_WAMP_BACKEND_SHARED_SECRET,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,

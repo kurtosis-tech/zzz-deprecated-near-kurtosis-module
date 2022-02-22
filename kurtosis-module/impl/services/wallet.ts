@@ -6,7 +6,7 @@ import { ContainerConfigSupplier } from "../near_module";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
-const IMAGE: string = "kurtosistech/near-wallet:0.2.0";
+const IMAGE: string = "kurtosistech/near-wallet:17684565";
 const PORT_ID = "http";
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
@@ -99,6 +99,8 @@ export async function addWallet(
     commandsToRun.push(ORIGINAL_WALLET_ENTRYPOINT_COMMAND)
     const singleCmdStringToRun = commandsToRun.join(" && ");
 
+    log.debug(`Wallet Parcel JS-updating command to run: ${singleCmdStringToRun}`)
+
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirectory: SharedPath) => {
         const result = new ContainerConfigBuilder(
             IMAGE,
@@ -176,10 +178,10 @@ function generateJsSrcUpdatingCommands(jsVars: Map<string, string>): Result<stri
         const verifyEnvvarExistenceCommand = `${verifyEnvvarExitenceFuncName} "${key}"`;
         commandFragments.push(verifyEnvvarExistenceCommand);
 
-        // Parcel envvars get set with a bunch of sequences of this constant-declaration, constant-assignemnt format:
-        // ....var v="https://api.moonpay.com";exports.MOONPAY_API_URL=v;....
-        // We therefore look for the constant-assignment and overwrite the value with our constant string instead
-        const updateJsFileCommand = `sed -i -E 's${JS_REPLACEMENT_SED_DELIMITER}exports.${key}=[A-Za-z]{1,2};${JS_REPLACEMENT_SED_DELIMITER}exports.${key}="${value}";${JS_REPLACEMENT_SED_DELIMITER}' ${WALLET_JS_FILE_GLOB}`
+        // Parcel envvars get set as a bunch of properties, like:
+        // ....MOONPAY_API_URL:"SOMETHING",ACCOUNT_ID_SUFFIX:"SOMETHING ELSE"....
+        // We therefore look for the property assignments and overwrite the value with our constant string instead
+        const updateJsFileCommand = `sed -i -E 's${JS_REPLACEMENT_SED_DELIMITER}([,{])${key}:"[^"]*"([,}])${JS_REPLACEMENT_SED_DELIMITER}\\1${key}:"${value}"\\2${JS_REPLACEMENT_SED_DELIMITER}g' ${WALLET_JS_FILE_GLOB}`
         commandFragments.push(updateJsFileCommand);
     }
 

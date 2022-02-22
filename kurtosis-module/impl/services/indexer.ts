@@ -4,8 +4,8 @@ import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE, tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
-const SERVICE_ID: ServiceID = "indexer"
-const IMAGE: string = "kurtosistech/near-indexer-for-explorer:0.2.0";
+const SERVICE_ID: ServiceID = "indexer-node"
+const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
 const RPC_PORT_NUM: number = 3030;
 const RPC_PORT_ID = "rpc";
 const RPC_PORT_SPEC = new PortSpec(RPC_PORT_NUM, PortProtocol.TCP);
