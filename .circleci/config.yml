@@ -33,7 +33,8 @@ jobs:
           echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
           sudo apt update
           sudo apt install kurtosis-cli
-      - run: kurtosis config init send-metrics
+      # We don't want to send metrics from our CI to not create "fake" users in the product analytics logs
+      - run: kurtosis config init dont-send-metrics
       - run: |
           source scripts/_constants.env
           docker_image_tag="$(bash ./scripts/get-docker-image-tag.sh)"

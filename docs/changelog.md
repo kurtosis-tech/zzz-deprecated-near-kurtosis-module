@@ -1,5 +1,10 @@
 # TBD
 
+# 0.5.14
+### Fixes
+* Added a guard to avoid reinitializing the database & config directory inside the indexer if it's already initialized, which will help users restart stopped environments
+* Updated to be based on indexer-for-explorer 0.10.10, which is itself based on nearcore 1.24.0
+
 # 0.5.13
 ### Features
 * Expose the gossip port on the indexer/NEAR node as well

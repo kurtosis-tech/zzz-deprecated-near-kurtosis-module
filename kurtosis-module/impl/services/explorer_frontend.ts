@@ -4,9 +4,9 @@ import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 
-const SERVICE_ID: ServiceID = "frontend";
+const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
-const IMAGE: string = "kurtosistech/near-explorer_frontend";
+const IMAGE: string = "kurtosistech/near-explorer_frontend:5ef5b6c";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 

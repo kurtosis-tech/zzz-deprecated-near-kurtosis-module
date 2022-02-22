@@ -8,7 +8,7 @@ const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
-const IMAGE: string = "kurtosistech/near-contract-helper";
+const IMAGE: string = "kurtosistech/near-contract-helper:b6a8d0f";
 
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
@@ -20,6 +20,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "MAIL_USER": "",
     "NEW_ACCOUNT_AMOUNT": "10000000000000000000000000",
     "NODE_ENV": "development", // Node.js environment; either `development` or `production`
+    "NEAR_WALLET_ENV": "development", // Matches the value set when the Wallet image was built
     "PORT": PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
     "TWILIO_ACCOUNT_SID": "", // account SID from Twilio (used to send security code)
     "TWILIO_AUTH_TOKEN": "", // auth token from Twilio (used to send security code)

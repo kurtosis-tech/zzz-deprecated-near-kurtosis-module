@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "build": "ts-mocha -p tsconfig.json 'kurtosis-module/test/**/*.ts' && tsc"
+        "build": "tsc"
     },
     "files": [
         "build"
@@ -10,11 +10,6 @@
         "loglevel": "^1.7.1"
     },
     "devDependencies": {
-        "@types/chai": "^4.2.21",
-        "@types/mocha": "^9.0.0",
-        "chai": "^4.3.4",
-        "mocha": "^9.1.0",
-        "ts-mocha": "^8.0.0",
         "typescript": "^4.3.5"
     }
 }
