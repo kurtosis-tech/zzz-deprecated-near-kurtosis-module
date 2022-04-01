@@ -9,6 +9,7 @@ import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 import { addWallet, WalletInfo } from "./services/wallet";
 import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
+import { deserializeAndValidateParams } from "./module_io/params_deserializer";
 
 export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
@@ -55,7 +56,13 @@ export class NearModule implements ExecutableKurtosisModule {
     // All this logic comes from translating https://github.com/near/docs/blob/975642ad49338bf8728a675def1f8bec8a780922/docs/local-setup/entire-setup.md
     //  into Kurtosis-compatible code
     async execute(enclaveCtx: EnclaveContext, serializedParams: string): Promise<Result<string, Error>> {
-        log.info("Serialized execute params '" + serializedParams + "'");
+        log.info(`Deserializing the following params string:\n${serializedParams}`);
+        const paramDeserializationResult = deserializeAndValidateParams(serializedParams)
+        if (paramDeserializationResult.isErr()) {
+            return err(paramDeserializationResult.error);
+        }
+        const executeParams = paramDeserializationResult.value;
+        log.info(`Deserialized the params string into the following params object: ${JSON.stringify(executeParams)}`);
 
         const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(enclaveCtx)
         if (addContractHelperDbServiceResult.isErr()) {
