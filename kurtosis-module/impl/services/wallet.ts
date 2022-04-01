@@ -53,6 +53,7 @@ export class WalletInfo {
 
 export async function addWallet(
     enclaveCtx: EnclaveContext,
+    backendIpAddress: string,
     nearNodePublicRpcUrl: ServiceUrl,
     contractHelperPublicUrl: ServiceUrl,
     explorerPublicUrl: ServiceUrl,
@@ -63,9 +64,9 @@ export async function addWallet(
 
     // Javascript variables that will be slotted into the Wallet's source JS code
     const jsVars: Map<string, string> = new Map(Object.entries({
-        NODE_URL_JS_VAR: nearNodePublicRpcUrl.toString(),
-        CONTRACT_HELPER_JS_VAR: contractHelperPublicUrl.toString(),
-        EXPLORER_URL_JS_VAR: explorerPublicUrl.toString(),
+        NODE_URL_JS_VAR: nearNodePublicRpcUrl.toStringWithIpAddressOverride(backendIpAddress),
+        CONTRACT_HELPER_JS_VAR: contractHelperPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+        EXPLORER_URL_JS_VAR: explorerPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
     }));
     for (let [key, value] of STATIC_JS_VARS.entries()) {
         jsVars.set(key, value);

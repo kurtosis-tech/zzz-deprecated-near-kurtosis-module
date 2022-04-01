@@ -1,7 +1,7 @@
 export class ExecuteParams {
     constructor(
-        // The backend IP address that the Wallet & Explorer websites will connect to
-        //  to pull information
+        // The IP address of the machine running Kurtosis, which will be slotted into the Wallet & Explorer
+        //  frontends so they can pull information
         public readonly backendIpAddress: string,
     ) {}
 }

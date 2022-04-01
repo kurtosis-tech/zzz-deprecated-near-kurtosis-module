@@ -95,6 +95,7 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
             enclaveCtx,
+            executeParams.backendIpAddress,
             explorerWampInfo.privateUrl,
             explorerWampInfo.publicUrl,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
@@ -106,6 +107,7 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addWalletResult: Result<WalletInfo, Error> = await addWallet(
             enclaveCtx,
+            executeParams.backendIpAddress,
             indexerInfo.publicRpcUrl,
             contractHelperServiceInfo.publicUrl,
             explorerFrontendInfo.publicUrl,

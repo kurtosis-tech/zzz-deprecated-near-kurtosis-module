@@ -29,8 +29,10 @@ export class ExplorerFrontendInfo {
 
 export async function addExplorerFrontendService(
     enclaveCtx: EnclaveContext, 
-    wampInternalUrl: ServiceUrl,
-    maybeHostMachineWampUrl: ServiceUrl | undefined,
+    // The IP address to use for connecting to the backend services
+    backendIpAddress: string,
+    wampPrivateUrl: ServiceUrl,
+    wampPublicUrl: ServiceUrl,
     networkName: string,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -39,20 +41,16 @@ export async function addExplorerFrontendService(
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
         WAMP_INTERNAL_URL_ENVVAR,
-        wampInternalUrl.toString(),
+        wampPrivateUrl.toString(),
     )
     envVars.set(
         NEAR_NETWORKS_ENVVAR,
-        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
+        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://${backendIpAddress}:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
     )
-    // If there's no host machine WAMP URL (i.e. Kurtosis isn't running in debug mode) then we can't set the
-    //  WAMP Docker-external variable
-    if (maybeHostMachineWampUrl !== undefined) {
-        envVars.set(
-            WAMP_EXTERNAL_URL_ENVVAR, 
-            maybeHostMachineWampUrl.toString(),
-        );
-    }
+    envVars.set(
+        WAMP_EXTERNAL_URL_ENVVAR, 
+        wampPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+    );
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
