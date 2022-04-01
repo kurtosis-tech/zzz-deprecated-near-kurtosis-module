@@ -3,6 +3,7 @@ import { ServiceUrl } from "./service_url";
 
 export const EXEC_COMMAND_SUCCESS_EXIT_CODE: number = 0;
 
+/*
 // IF a host machine port binding is available, call the urlSupplier function to form a URL out of the port binding IP & port
 // If no host machine port binding is available, return undefined
 export function tryToFormHostMachineUrl(
@@ -19,3 +20,4 @@ export function tryToFormHostMachineUrl(
     const publicPortNum = maybePublicPort.number;
     return new ServiceUrl(protocol, maybePublicIpAddr, publicPortNum, path);
 }
+*/

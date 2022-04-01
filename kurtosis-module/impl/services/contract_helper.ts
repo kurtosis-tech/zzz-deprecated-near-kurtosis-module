@@ -1,14 +1,14 @@
 import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
-import { ServiceUrl } from "../service_url";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-contract-helper:b6a8d0f";
 
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
@@ -35,20 +35,14 @@ const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 export class ContractHelperServiceInfo {
     constructor(
-        public readonly networkInternalHostname: string,
-        public readonly networkInternalPorNum: number,
-        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
-    ) {
-        this.networkInternalHostname = networkInternalHostname;
-        this.networkInternalPorNum = networkInternalPorNum;
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
+        public readonly publicUrl: ServiceUrl,
+        public readonly privateUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addContractHelperService(
     enclaveCtx: EnclaveContext,
-    dbHostname: string,
-    dbPortNum: number,
+    dbPrivateUrl: ServiceUrl,
     dbUsername: string,
     dbUserPassword: string,
     dbName: string,
@@ -80,7 +74,7 @@ export async function addContractHelperService(
     )
     envvars.set(
         INDEXER_DB_CONNECTION_ENVVAR,
-        `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`
+        `postgres://${dbUsername}:${dbUserPassword}@${dbPrivateUrl.ipAddress}:${dbPrivateUrl.portNumber}/${dbName}`
     )
     envvars.set(
         NODE_RPC_URL_ENVVAR,
@@ -107,17 +101,21 @@ export async function addContractHelperService(
     }
     const serviceCtx: ServiceContext = addServiceResult.value;
 
-    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
-        "http",
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
+
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
         "",
-    )
+    );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
 
     const result: ContractHelperServiceInfo = new ContractHelperServiceInfo(
-        SERVICE_ID,
-        PORT_NUM,
-        maybeHostMachineUrl,
+        privateUrl,
+        publicUrl,
     );
 
     return ok(result);

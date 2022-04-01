@@ -42,15 +42,14 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 
 export async function addExplorerBackendService(
     enclaveCtx: EnclaveContext,
-    nearNodeHostname: string,
-    nearNodeRpcPortNum: number,
+    nearNodePrivateRpcUrl: ServiceUrl,
+    indexerDbPrivateUrl: ServiceUrl,
     indexerDbUsername: string,
     indexerDbUserPassword: string,
-    indexerDbHostname: string,
     indexerDbName: string,
     analyticsDbName: string,
     telemetryDbName: string,
-    wampInternalUrl: ServiceUrl,
+    wampPrivateUrl: ServiceUrl,
     sharedWampBackendSecret: string,
     networkName: string,
 ): Promise<Result<null, Error>> {
@@ -60,28 +59,28 @@ export async function addExplorerBackendService(
         // Indexer DB envvars
         [NEAR_READ_ONLY_INDEXER_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
         [NEAR_READ_ONLY_INDEXER_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
-        [NEAR_READ_ONLY_INDEXER_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_READ_ONLY_INDEXER_DATABASE_HOST_ENVVAR, indexerDbPrivateUrl.ipAddress],
         [NEAR_READ_ONLY_INDEXER_DATABASE_NAME_ENVVAR, indexerDbName],
 
         // Analytics DB envvars
         [NEAR_READ_ONLY_ANALYTICS_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
         [NEAR_READ_ONLY_ANALYTICS_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
-        [NEAR_READ_ONLY_ANALYTICS_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_READ_ONLY_ANALYTICS_DATABASE_HOST_ENVVAR, indexerDbPrivateUrl.ipAddress],
         [NEAR_READ_ONLY_ANALYTICS_DATABASE_NAME_ENVVAR, analyticsDbName],
 
         // Telemetry DB envvars
         [NEAR_READ_ONLY_TELEMETRY_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
         [NEAR_READ_ONLY_TELEMETRY_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
-        [NEAR_READ_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_READ_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbPrivateUrl.ipAddress],
         [NEAR_READ_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR, telemetryDbName],
         [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_USERNAME_ENVVAR, indexerDbUsername],
         [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_PASSWORD_ENVVAR, indexerDbUserPassword],
-        [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbHostname],
+        [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbPrivateUrl.ipAddress],
         [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR, telemetryDbName],
 
-        [WAMP_URL_ENVVAR, wampInternalUrl.toString()],
+        [WAMP_URL_ENVVAR, wampPrivateUrl.toString()],
         [SHARED_WAMP_BACKEND_SECRET_ENVVAR, sharedWampBackendSecret],
-        [NEAR_NODE_RPC_URL_ENVVAR, `http://${nearNodeHostname}:${nearNodeRpcPortNum}`],
+        [NEAR_NODE_RPC_URL_ENVVAR, nearNodePrivateRpcUrl.toString()],
     ]);
     for (let [key, value] of STATIC_ENVVARS.entries()) {
         envVars.set(key, value);

@@ -27,9 +27,8 @@ const MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES: number = 500;
 
 export class IndexerInfo {
     constructor(
-        public readonly networkInternalHostname: string,
-        public readonly networkInternalPortNum: number,
-        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
+        public readonly privateUrl: string,
+        public readonly publicUrl: string,
         public readonly validatorKey: Object,
     ) {}
 }
