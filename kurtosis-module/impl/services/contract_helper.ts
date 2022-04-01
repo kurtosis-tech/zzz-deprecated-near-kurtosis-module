@@ -1,13 +1,14 @@
 import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-contract-helper:b6a8d0f";
 
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
@@ -33,43 +34,19 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 export class ContractHelperServiceInfo {
-    private readonly networkInternalHostname: string;
-    private readonly networkInternalPorNum: number;
-    // Will only be set if debug mode is enabled
-    private readonly maybeHostMachineUrl: string | undefined;
-
     constructor(
-        networkInternalHostname: string,
-        networkInternalPorNum: number,
-        maybeHostMachineUrl: string | undefined,
-    ) {
-        this.networkInternalHostname = networkInternalHostname;
-        this.networkInternalPorNum = networkInternalPorNum;
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getNetworkInternalHostname(): string {
-        return this.networkInternalHostname;
-    }
-
-    public getNetworkInternalPortNum(): number {
-        return this.networkInternalPorNum;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
-    }
+        public readonly privateUrl: ServiceUrl,
+        public readonly publicUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addContractHelperService(
     enclaveCtx: EnclaveContext,
-    dbHostname: string,
-    dbPortNum: number,
+    dbPrivateUrl: ServiceUrl,
     dbUsername: string,
     dbUserPassword: string,
     dbName: string,
-    nearupHostname: string,
-    nearupPort: number,
+    nearNodePrivateRpcUrl: ServiceUrl,
     validatorKey: Object,
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
     log.info(`Adding contract helper service running on port '${PORT_NUM}'`);
@@ -96,11 +73,11 @@ export async function addContractHelperService(
     )
     envvars.set(
         INDEXER_DB_CONNECTION_ENVVAR,
-        `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`
+        `postgres://${dbUsername}:${dbUserPassword}@${dbPrivateUrl.ipAddress}:${dbPrivateUrl.portNumber}/${dbName}`
     )
     envvars.set(
         NODE_RPC_URL_ENVVAR,
-        `http://${nearupHostname}:${nearupPort}`
+        nearNodePrivateRpcUrl.toString(),
     )
     for (let [key, value] of STATIC_ENVVARS.entries()) {
         envvars.set(key, value);
@@ -123,16 +100,21 @@ export async function addContractHelperService(
     }
     const serviceCtx: ServiceContext = addServiceResult.value;
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`,
-    )
+
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
+        "",
+    );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
 
     const result: ContractHelperServiceInfo = new ContractHelperServiceInfo(
-        SERVICE_ID,
-        PORT_NUM,
-        maybeHostMachineUrl,
+        privateUrl,
+        publicUrl,
     );
 
     return ok(result);

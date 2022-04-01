@@ -9,6 +9,8 @@ import { addExplorerBackendService } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 import { addWallet, WalletInfo } from "./services/wallet";
 import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
+import { deserializeAndValidateParams } from "./module_io/params_deserializer";
+import { ExecuteResult } from "./module_io/result";
 
 export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
@@ -18,36 +20,6 @@ const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
 const RESULT_JSON_PRETTY_PRINT_SPACE_NUM: number = 4;
 
-// Result returned by the execute command, serialized as JSON
-class ExecuteResult {
-    private readonly networkName: string;
-
-    private readonly rootValidatorKey: Object;
-
-    private readonly nearNodeRpcUrl: string | null;
-
-    private readonly contractHelperServiceUrl: string | null;
-
-    private readonly walletUrl: string | null;
-
-    private readonly explorerUrl: string | null;
-
-    constructor(
-        networkName: string,
-        rootValidatorKey: Object,
-        nearNodeRpcUrl: string | null,
-        contractHelperServiceUrl: string | null,
-        walletUrl: string | null,
-        explorerUrl: string | null,
-    ) {
-        this.networkName = networkName;
-        this.rootValidatorKey = rootValidatorKey;
-        this.nearNodeRpcUrl = nearNodeRpcUrl;
-        this.contractHelperServiceUrl = contractHelperServiceUrl;
-        this.walletUrl = walletUrl;
-        this.explorerUrl = explorerUrl;
-    }
-}
 
 export class NearModule implements ExecutableKurtosisModule {
     constructor() {}
@@ -55,7 +27,13 @@ export class NearModule implements ExecutableKurtosisModule {
     // All this logic comes from translating https://github.com/near/docs/blob/975642ad49338bf8728a675def1f8bec8a780922/docs/local-setup/entire-setup.md
     //  into Kurtosis-compatible code
     async execute(enclaveCtx: EnclaveContext, serializedParams: string): Promise<Result<string, Error>> {
-        log.info("Serialized execute params '" + serializedParams + "'");
+        log.info(`Deserializing the following params string:\n${serializedParams}`);
+        const paramDeserializationResult = deserializeAndValidateParams(serializedParams)
+        if (paramDeserializationResult.isErr()) {
+            return err(paramDeserializationResult.error);
+        }
+        const executeParams = paramDeserializationResult.value;
+        log.info(`Deserialized the params string into the following params object: ${JSON.stringify(executeParams)}`);
 
         const addContractHelperDbServiceResult: Result<ContractHelperDbInfo, Error> = await addContractHelperDb(enclaveCtx)
         if (addContractHelperDbServiceResult.isErr()) {
@@ -65,11 +43,10 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addIndexerResult: Result<IndexerInfo, Error> = await addIndexer(
             enclaveCtx,
-            contractHelperDbInfo.getNetworkInternalHostname(),
-            contractHelperDbInfo.getNetworkInternalPortNum(),
-            contractHelperDbInfo.getDbUsername(),
-            contractHelperDbInfo.getDbPassword(),
-            contractHelperDbInfo.getIndexerDb()
+            contractHelperDbInfo.privateUrl,
+            contractHelperDbInfo.dbUsername,
+            contractHelperDbInfo.dbUserPassword,
+            contractHelperDbInfo.indexerDb,
         );
         if (addIndexerResult.isErr()) {
             return err(addIndexerResult.error);
@@ -78,14 +55,12 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addContractHelperServiceResult: Result<ContractHelperServiceInfo, Error> = await addContractHelperService(
             enclaveCtx,
-            contractHelperDbInfo.getNetworkInternalHostname(),
-            contractHelperDbInfo.getNetworkInternalPortNum(),
-            contractHelperDbInfo.getDbUsername(),
-            contractHelperDbInfo.getDbPassword(),
-            contractHelperDbInfo.getIndexerDb(),
-            indexerInfo.getNetworkInternalHostname(),
-            indexerInfo.getNetworkInternalPortNum(),
-            indexerInfo.getValidatorKey()
+            contractHelperDbInfo.privateUrl,
+            contractHelperDbInfo.dbUsername,
+            contractHelperDbInfo.dbUserPassword,
+            contractHelperDbInfo.indexerDb,
+            indexerInfo.privateRpcUrl,
+            indexerInfo.validatorKey,
         );
         if (addContractHelperServiceResult.isErr()) {
             return err(addContractHelperServiceResult.error);
@@ -103,15 +78,14 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addExplorerBackendResult: Result<null, Error> = await addExplorerBackendService(
             enclaveCtx,
-            indexerInfo.getNetworkInternalHostname(),
-            indexerInfo.getNetworkInternalPortNum(),
-            contractHelperDbInfo.getDbUsername(),
-            contractHelperDbInfo.getDbPassword(),
-            contractHelperDbInfo.getNetworkInternalHostname(),
-            contractHelperDbInfo.getIndexerDb(),
-            contractHelperDbInfo.getAnalyticsDb(),
-            contractHelperDbInfo.getTelemetryDb(),
-            explorerWampInfo.getInternalUrl(),
+            indexerInfo.privateRpcUrl,
+            contractHelperDbInfo.privateUrl,
+            contractHelperDbInfo.dbUsername,
+            contractHelperDbInfo.dbUserPassword,
+            contractHelperDbInfo.indexerDb,
+            contractHelperDbInfo.analyticsDb,
+            contractHelperDbInfo.telemetryDb,
+            explorerWampInfo.privateUrl,
             EXPLORER_WAMP_BACKEND_SHARED_SECRET,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
         );
@@ -121,8 +95,9 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
             enclaveCtx,
-            explorerWampInfo.getInternalUrl(),
-            explorerWampInfo.getMaybeHostMachineUrl(),
+            executeParams.backendIpAddress,
+            explorerWampInfo.privateUrl,
+            explorerWampInfo.publicUrl,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
         );
         if (addExplorerFrontendResult.isErr()) {
@@ -132,23 +107,23 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addWalletResult: Result<WalletInfo, Error> = await addWallet(
             enclaveCtx,
-            indexerInfo.getMaybeHostMachineUrl(),
-            contractHelperServiceInfo.getMaybeHostMachineUrl(),
-            explorerFrontendInfo.getMaybeHostMachineUrl(),
+            executeParams.backendIpAddress,
+            indexerInfo.publicRpcUrl,
+            contractHelperServiceInfo.publicUrl,
+            explorerFrontendInfo.publicUrl,
         );
         if (addWalletResult.isErr()) {
             return err(addWalletResult.error);
         }
         const walletInfo: WalletInfo = addWalletResult.value;
-        const maybeWalletHostMachineUrl = walletInfo.getMaybeHostMachineUrl();
 
         const resultObj: ExecuteResult = new ExecuteResult(
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
-            indexerInfo.getValidatorKey(),
-            indexerInfo.getMaybeHostMachineUrl() || null,
-            contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
-            maybeWalletHostMachineUrl || null,
-            explorerFrontendInfo.getMaybeHostMachineUrl() || null,
+            indexerInfo.validatorKey,
+            indexerInfo.publicRpcUrl.toString(),
+            contractHelperServiceInfo.publicUrl.toString(),
+            walletInfo.publicUrl.toString(),
+            explorerFrontendInfo.publicUrl.toString(),
         );
 
         let stringResult;

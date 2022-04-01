@@ -1,11 +1,12 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
+const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-explorer_frontend:5ef5b6c";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
@@ -21,23 +22,17 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 }));
 
 export class ExplorerFrontendInfo {
-    private readonly maybeHostMachineUrl: string | undefined;
-
     constructor (
-        maybeHostMachineUrl: string | undefined,
-    ) {
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
-    }
+        public readonly publicUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addExplorerFrontendService(
     enclaveCtx: EnclaveContext, 
-    wampInternalUrl: string,
-    maybeHostMachineWampUrl: string | undefined,
+    // The IP address to use for connecting to the backend services
+    backendIpAddress: string,
+    wampPrivateUrl: ServiceUrl,
+    wampPublicUrl: ServiceUrl,
     networkName: string,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -46,20 +41,16 @@ export async function addExplorerFrontendService(
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
         WAMP_INTERNAL_URL_ENVVAR,
-        wampInternalUrl,
+        wampPrivateUrl.toString(),
     )
     envVars.set(
         NEAR_NETWORKS_ENVVAR,
-        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
+        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://${backendIpAddress}:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
     )
-    // If there's no host machine WAMP URL (i.e. Kurtosis isn't running in debug mode) then we can't set the
-    //  WAMP Docker-external variable
-    if (maybeHostMachineWampUrl !== undefined) {
-        envVars.set(
-            WAMP_EXTERNAL_URL_ENVVAR, 
-            maybeHostMachineWampUrl,
-        );
-    }
+    envVars.set(
+        WAMP_EXTERNAL_URL_ENVVAR, 
+        wampPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+    );
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
@@ -78,12 +69,17 @@ export async function addExplorerFrontendService(
     }
     const serviceCtx = addServiceResult.value;
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`,
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
+        "",
     );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
 
-    const result: ExplorerFrontendInfo = new ExplorerFrontendInfo(maybeHostMachineUrl);
+    const result: ExplorerFrontendInfo = new ExplorerFrontendInfo(publicUrl);
     return ok(result);
 }

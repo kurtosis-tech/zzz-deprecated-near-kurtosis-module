@@ -1,13 +1,14 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
 const IMAGE: string = "kurtosistech/near-wallet:17684565";
 const PORT_ID = "http";
+const PORT_PROTOCOL = "http";
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
 // These variable names come from https://github.com/near/near-wallet/blob/master/packages/frontend/src/config.js
@@ -45,23 +46,17 @@ const MAX_AVAILABILITY_CHECKS: number = 30;
 const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 1000;
 
 export class WalletInfo {
-    // Will be set to undefined only in debug mode
-    private readonly maybeHostMachineUrl: string | undefined;
-
-    constructor(maybeHostMachineUrl: string | undefined) {
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
-    }
+    constructor(
+        public readonly publicUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addWallet(
     enclaveCtx: EnclaveContext,
-    maybeHostMachineNearNodeRpcUrl: string | undefined,
-    maybeHostMachineContractHelperUrl: string | undefined,
-    maybeHostMachineExplorerUrl: string | undefined,
+    backendIpAddress: string,
+    nearNodePublicRpcUrl: ServiceUrl,
+    contractHelperPublicUrl: ServiceUrl,
+    explorerPublicUrl: ServiceUrl,
 ): Promise<Result<WalletInfo, Error>> {
     log.info(`Adding wallet running on port '${PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -69,24 +64,18 @@ export async function addWallet(
 
     // Javascript variables that will be slotted into the Wallet's source JS code
     const jsVars: Map<string, string> = new Map();
-    if (maybeHostMachineNearNodeRpcUrl !== undefined) {
-        jsVars.set(
-            NODE_URL_JS_VAR,
-            maybeHostMachineNearNodeRpcUrl
-        );
-    }
-    if (maybeHostMachineContractHelperUrl !== undefined) {
-        jsVars.set(
-            CONTRACT_HELPER_JS_VAR,
-            maybeHostMachineContractHelperUrl
-        );
-    }
-    if (maybeHostMachineExplorerUrl !== undefined) {
-        jsVars.set(
-            EXPLORER_URL_JS_VAR,
-            maybeHostMachineExplorerUrl
-        )
-    }
+    jsVars.set(
+        NODE_URL_JS_VAR, 
+        nearNodePublicRpcUrl.toStringWithIpAddressOverride(backendIpAddress),
+    )
+    jsVars.set(
+        CONTRACT_HELPER_JS_VAR, 
+        contractHelperPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+    )
+    jsVars.set(
+        EXPLORER_URL_JS_VAR, 
+        explorerPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+    )
     for (let [key, value] of STATIC_JS_VARS.entries()) {
         jsVars.set(key, value);
     }
@@ -127,13 +116,19 @@ export async function addWallet(
         return err(waitForAvailabilityResult.error);
     }
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
-    )
 
-    const result: WalletInfo = new WalletInfo(maybeHostMachineUrl)
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
+        "",
+    );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
+
+    const result: WalletInfo = new WalletInfo(publicUrl)
 
     return ok(result);
 }

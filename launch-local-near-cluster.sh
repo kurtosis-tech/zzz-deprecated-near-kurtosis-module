@@ -55,7 +55,10 @@ if ! mkdir -p "${module_exec_dirpath}"; then
 fi
 
 exec_output_filepath="${module_exec_dirpath}/exec-output.log"
-if ! "${KURTOSIS_CMD}" module exec "${NEAR_MODULE_IMAGE}" | tee "${exec_output_filepath}"; then
+# The funky ${1+"${@}"} incantation is how you you feed arguments exactly as-is to a child script in Bash
+# ${*} loses quoting and ${@} trips set -e if no arguments are passed, so this incantation says, "if and only if
+#  ${1} exists, evaluate ${@}"
+if ! "${KURTOSIS_CMD}" module exec "${NEAR_MODULE_IMAGE}" ${1+"${@}"} | tee "${exec_output_filepath}"; then
     echo "Error: An error occurred executing module '${NEAR_MODULE_IMAGE}'" >&2
     exit 1
 fi

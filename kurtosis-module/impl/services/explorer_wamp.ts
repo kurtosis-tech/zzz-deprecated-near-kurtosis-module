@@ -1,8 +1,8 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-wamp";
 const IMAGE: string = "kurtosistech/near-explorer_wamp";
@@ -10,31 +10,19 @@ const PORT_ID = "ws";
 const PORT_NUM: number = 8080;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
+const PORT_PROTOCOL = "ws";
+const URL_PATH = "/ws";
+
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "WAMP_NEAR_EXPLORER_PORT": PORT_NUM.toString(),
 }));
 
 export class ExplorerWampInfo {
-    private readonly internalUrl: string;
-    // This will only be set if debug mode is set
-    private readonly maybeHostMachineUrl: string | undefined;
-
     constructor(
-        internalUrl: string,
-        maybeHostMachineUrl: string | undefined,
-    ) {
-        this.internalUrl = internalUrl;
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getInternalUrl(): string {
-        return this.internalUrl;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
-    }
+        public readonly privateUrl: ServiceUrl,
+        public readonly publicUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addExplorerWampService(
@@ -64,22 +52,21 @@ export async function addExplorerWampService(
     }
     const serviceCtx  = addServiceResult.value;
 
-    const internalUrl: string = buildWsUrl(SERVICE_ID, PORT_NUM);
-
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
-        buildWsUrl,
-    )
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
+        URL_PATH,
+    );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
 
     const result: ExplorerWampInfo = new ExplorerWampInfo(
-        internalUrl,
-        maybeHostMachineUrl,
+        privateUrl,
+        publicUrl,
     );
 
     return ok(result);
-}
-
-function buildWsUrl(hostname: string, portNum: number): string {
-    return `ws://${hostname}:${portNum}/ws`
 }
