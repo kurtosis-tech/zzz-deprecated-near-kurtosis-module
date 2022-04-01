@@ -46,8 +46,7 @@ export async function addContractHelperService(
     dbUsername: string,
     dbUserPassword: string,
     dbName: string,
-    nearupHostname: string,
-    nearupPort: number,
+    nearNodePrivateRpcUrl: ServiceUrl,
     validatorKey: Object,
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
     log.info(`Adding contract helper service running on port '${PORT_NUM}'`);
@@ -78,7 +77,7 @@ export async function addContractHelperService(
     )
     envvars.set(
         NODE_RPC_URL_ENVVAR,
-        `http://${nearupHostname}:${nearupPort}`
+        nearNodePrivateRpcUrl.toString(),
     )
     for (let [key, value] of STATIC_ENVVARS.entries()) {
         envvars.set(key, value);

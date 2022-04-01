@@ -1,12 +1,12 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
-import { ServiceUrl } from "../service_url";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
+const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-explorer_frontend:5ef5b6c";
 const PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
@@ -23,10 +23,8 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 
 export class ExplorerFrontendInfo {
     constructor (
-        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
-    ) {
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
+        public readonly publicUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addExplorerFrontendService(
@@ -73,13 +71,17 @@ export async function addExplorerFrontendService(
     }
     const serviceCtx = addServiceResult.value;
 
-    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
-        "http",
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
         "",
     );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
 
-    const result: ExplorerFrontendInfo = new ExplorerFrontendInfo(maybeHostMachineUrl);
+    const result: ExplorerFrontendInfo = new ExplorerFrontendInfo(publicUrl);
     return ok(result);
 }

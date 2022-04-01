@@ -1,9 +1,8 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
-import { ServiceUrl } from "../service_url";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-wamp";
 const IMAGE: string = "kurtosistech/near-explorer_wamp";
@@ -11,7 +10,7 @@ const PORT_ID = "ws";
 const PORT_NUM: number = 8080;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
-const URL_PROTOCOL = "ws";
+const PORT_PROTOCOL = "ws";
 const URL_PATH = "/ws";
 
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
@@ -21,12 +20,9 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 
 export class ExplorerWampInfo {
     constructor(
-        public readonly internalUrl: ServiceUrl,
-        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
-    ) {
-        this.internalUrl = internalUrl;
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
+        public readonly privateUrl: ServiceUrl,
+        public readonly publicUrl: ServiceUrl,
+    ) {}
 }
 
 export async function addExplorerWampService(
@@ -56,22 +52,20 @@ export async function addExplorerWampService(
     }
     const serviceCtx  = addServiceResult.value;
 
-    const internalUrl: ServiceUrl = new ServiceUrl(
-        URL_PROTOCOL,
-        SERVICE_ID,
-        PORT_NUM,
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
         URL_PATH,
-    )
-    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
-        URL_PROTOCOL,
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(PORT_ID),
-        URL_PATH,
-    )
+    );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
 
     const result: ExplorerWampInfo = new ExplorerWampInfo(
-        internalUrl,
-        maybeHostMachineUrl,
+        privateUrl,
+        publicUrl,
     );
 
     return ok(result);

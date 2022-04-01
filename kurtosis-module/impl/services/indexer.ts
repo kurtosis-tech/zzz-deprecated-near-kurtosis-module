@@ -1,15 +1,16 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { EXEC_COMMAND_SUCCESS_EXIT_CODE, tryToFormHostMachineUrl } from "../consts";
+import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
-import { ServiceUrl } from "../service_url";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "indexer-node"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
 const RPC_PORT_NUM: number = 3030;
 const RPC_PORT_ID = "rpc";
 const RPC_PORT_SPEC = new PortSpec(RPC_PORT_NUM, PortProtocol.TCP);
+const RPC_PORT_PROTOCOL = "http";
 const GOSSIP_PORT_NUM: number = 24567;
 const GOSSIP_PORT_ID = "gossip";
 const GOSSIP_PORT_SPEC = new PortSpec(GOSSIP_PORT_NUM, PortProtocol.TCP);
@@ -27,16 +28,15 @@ const MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES: number = 500;
 
 export class IndexerInfo {
     constructor(
-        public readonly privateUrl: string,
-        public readonly publicUrl: string,
+        public readonly privateRpcUrl: ServiceUrl,
+        public readonly publicRpcUrl: ServiceUrl,
         public readonly validatorKey: Object,
     ) {}
 }
 
 export async function addIndexer(
     enclaveCtx: EnclaveContext,
-    dbHostname: string,
-    dbPortNum: number,
+    dbPrivateUrl: ServiceUrl,
     dbUsername: string,
     dbUserPassword: string,
     dbName: string,
@@ -49,7 +49,7 @@ export async function addIndexer(
     const envvars: Map<string, string> = new Map();
     envvars.set(
         DATABASE_URL_ENVVAR,
-        `postgres://${dbUsername}:${dbUserPassword}@${dbHostname}:${dbPortNum}/${dbName}`
+        `postgres://${dbUsername}:${dbUserPassword}@${dbPrivateUrl.ipAddress}:${dbPrivateUrl.portNumber}/${dbName}`
     )
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath): Result<ContainerConfig, Error> => {
@@ -90,17 +90,20 @@ export async function addIndexer(
         ));
     }
 
-    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
-        "http",
-        serviceCtx.getMaybePublicIPAddress(),
-        serviceCtx.getPublicPorts().get(RPC_PORT_ID),
+    const getRpcUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        RPC_PORT_ID,
+        RPC_PORT_PROTOCOL,
         "",
     );
+    if (getRpcUrlsResult.isErr()) {
+        return err(getRpcUrlsResult.error);
+    }
+    const [privateRpcUrl, publicRpcUrl] = getRpcUrlsResult.value;
 
     const result: IndexerInfo = new IndexerInfo(
-        SERVICE_ID,
-        RPC_PORT_NUM,
-        maybeHostMachineUrl,
+        privateRpcUrl,
+        publicRpcUrl,
         validatorKey,
     );
 
