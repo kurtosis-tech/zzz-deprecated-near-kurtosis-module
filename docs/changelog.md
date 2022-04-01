@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.15
+### Features
+* Allow users to pass in `--execute-params '{"backendIpAddress": "1.2.3.4"}'` to override the backend IP address that the Wallet & Explorer frontends use for getting data
+
 # 0.5.14
 ### Fixes
 * Added a guard to avoid reinitializing the database & config directory inside the indexer if it's already initialized, which will help users restart stopped environments

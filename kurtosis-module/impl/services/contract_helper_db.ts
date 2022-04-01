@@ -3,9 +3,11 @@ import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-db";
 const PORT_ID: string = "postgres";
+const PORT_PROTOCOL = "postgres"
 const IMAGE: string = "postgres:13.4-alpine3.14";
 const PORT_NUM: number = 5432;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
@@ -38,59 +40,14 @@ const AVAILABILITY_CMD: string[] = [
 ];
 
 export class ContractHelperDbInfo {
-    private readonly networkInternalHostname: string;
-    private readonly networkInternalPortNum: number;
-    private readonly dbUsername: string;
-    private readonly dbUserPassword: string;
-    private readonly indexerDb: string;
-    private readonly analyticsDb: string;
-    private readonly telemetryDb: string;
-
     constructor(
-        networkInternalHostname: string,
-        networkInternalPortNum: number,
-        dbUsername: string,
-        dbUserPassword: string,
-        indexerDb: string,
-        analyticsDb: string,
-        telemetryDb: string,
-    ) {
-        this.networkInternalHostname = networkInternalHostname;
-        this.networkInternalPortNum = networkInternalPortNum;
-        this.dbUsername = dbUsername;
-        this.dbUserPassword = dbUserPassword;
-        this.indexerDb = indexerDb;
-        this.analyticsDb = analyticsDb;
-        this.telemetryDb = telemetryDb;
-    }
-
-    public getNetworkInternalHostname(): string {
-        return this.networkInternalHostname;
-    }
-
-    public getNetworkInternalPortNum(): number {
-        return this.networkInternalPortNum;
-    }
-
-    public getDbUsername(): string {
-        return this.dbUsername;
-    }
-
-    public getDbPassword(): string {
-        return this.dbUserPassword;
-    }
-
-    public getIndexerDb(): string {
-        return this.indexerDb;
-    }
-
-    public getAnalyticsDb(): string {
-        return this.analyticsDb;
-    }
-
-    public getTelemetryDb(): string {
-        return this.telemetryDb;
-    }
+        public readonly privateUrl: ServiceUrl,
+        public readonly dbUsername: string,
+        public readonly dbUserPassword: string,
+        public readonly indexerDb: string,
+        public readonly analyticsDb: string,
+        public readonly telemetryDb: string,
+    ) {}
 }
 
 export async function addContractHelperDb(enclaveCtx: EnclaveContext): Promise<Result<ContractHelperDbInfo, Error>> {
@@ -139,9 +96,19 @@ export async function addContractHelperDb(enclaveCtx: EnclaveContext): Promise<R
         }
     }
 
+    const getUrlsResult = getPrivateAndPublicUrlsForPortId(
+        serviceCtx,
+        PORT_ID,
+        PORT_PROTOCOL,
+        "",
+    );
+    if (getUrlsResult.isErr()) {
+        return err(getUrlsResult.error);
+    }
+    const [privateUrl, publicUrl] = getUrlsResult.value;
+
     const result: ContractHelperDbInfo = new ContractHelperDbInfo(
-        SERVICE_ID,
-        PORT_NUM,
+        privateUrl,
         POSTGRES_USER,
         POSTGRES_PASSWORD,
         INDEXER_DB,
