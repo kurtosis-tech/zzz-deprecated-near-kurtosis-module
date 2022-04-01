@@ -35,8 +35,8 @@ const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 export class ContractHelperServiceInfo {
     constructor(
-        public readonly publicUrl: ServiceUrl,
         public readonly privateUrl: ServiceUrl,
+        public readonly publicUrl: ServiceUrl,
     ) {}
 }
 

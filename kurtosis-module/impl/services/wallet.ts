@@ -63,11 +63,19 @@ export async function addWallet(
     usedPorts.set(PORT_ID, PORT_SPEC);
 
     // Javascript variables that will be slotted into the Wallet's source JS code
-    const jsVars: Map<string, string> = new Map(Object.entries({
-        NODE_URL_JS_VAR: nearNodePublicRpcUrl.toStringWithIpAddressOverride(backendIpAddress),
-        CONTRACT_HELPER_JS_VAR: contractHelperPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
-        EXPLORER_URL_JS_VAR: explorerPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
-    }));
+    const jsVars: Map<string, string> = new Map();
+    jsVars.set(
+        NODE_URL_JS_VAR, 
+        nearNodePublicRpcUrl.toStringWithIpAddressOverride(backendIpAddress),
+    )
+    jsVars.set(
+        CONTRACT_HELPER_JS_VAR, 
+        contractHelperPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+    )
+    jsVars.set(
+        EXPLORER_URL_JS_VAR, 
+        explorerPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+    )
     for (let [key, value] of STATIC_JS_VARS.entries()) {
         jsVars.set(key, value);
     }
