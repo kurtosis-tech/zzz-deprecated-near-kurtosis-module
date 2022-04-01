@@ -3,6 +3,7 @@ import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "wallet";
 const PORT_NUM: number = 3004;
@@ -45,23 +46,16 @@ const MAX_AVAILABILITY_CHECKS: number = 30;
 const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 1000;
 
 export class WalletInfo {
-    // Will be set to undefined only in debug mode
-    private readonly maybeHostMachineUrl: string | undefined;
-
-    constructor(maybeHostMachineUrl: string | undefined) {
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
-    }
+    constructor(
+        maybeHostMachineUrl: ServiceUrl | undefined,
+    ) {}
 }
 
 export async function addWallet(
     enclaveCtx: EnclaveContext,
-    maybeHostMachineNearNodeRpcUrl: string | undefined,
-    maybeHostMachineContractHelperUrl: string | undefined,
-    maybeHostMachineExplorerUrl: string | undefined,
+    maybeHostMachineNearNodeRpcUrl: ServiceUrl | undefined,
+    maybeHostMachineContractHelperUrl: ServiceUrl | undefined,
+    maybeHostMachineExplorerUrl: ServiceUrl | undefined,
 ): Promise<Result<WalletInfo, Error>> {
     log.info(`Adding wallet running on port '${PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -127,10 +121,11 @@ export async function addWallet(
         return err(waitForAvailabilityResult.error);
     }
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
+        "http",
         serviceCtx.getMaybePublicIPAddress(),
         serviceCtx.getPublicPorts().get(PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
+        "",
     )
 
     const result: WalletInfo = new WalletInfo(maybeHostMachineUrl)

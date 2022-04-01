@@ -3,6 +3,7 @@ import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE, tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "indexer-node"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
@@ -25,39 +26,12 @@ const MAX_NUM_GET_VALIDATOR_KEY_RETRIES: number = 20;
 const MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES: number = 500;
 
 export class IndexerInfo {
-    private readonly networkInternalHostname: string;
-    private readonly networkInternalPortNum: number;
-    // Will only be set if debug mode is enabled
-    private readonly maybeHostMachineUrl: string | undefined;
-    private readonly validatorKey: Object;
-
     constructor(
-        networkInternalHostname: string,
-        networkInternalPortNum: number,
-        maybeHostMachineUrl: string | undefined,
-        validatorKey: Object,
-    ) {
-        this.networkInternalHostname = networkInternalHostname;
-        this.networkInternalPortNum = networkInternalPortNum;
-        this.maybeHostMachineUrl = maybeHostMachineUrl;
-        this.validatorKey = validatorKey;
-    }
-
-    public getNetworkInternalHostname(): string {
-        return this.networkInternalHostname;
-    }
-
-    public getNetworkInternalPortNum(): number {
-        return this.networkInternalPortNum;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
-    }
-
-    public getValidatorKey(): Object {
-        return this.validatorKey;
-    }
+        public readonly networkInternalHostname: string,
+        public readonly networkInternalPortNum: number,
+        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
+        public readonly validatorKey: Object,
+    ) {}
 }
 
 export async function addIndexer(
@@ -117,11 +91,12 @@ export async function addIndexer(
         ));
     }
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
+        "http",
         serviceCtx.getMaybePublicIPAddress(),
         serviceCtx.getPublicPorts().get(RPC_PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`
-    )
+        "",
+    );
 
     const result: IndexerInfo = new IndexerInfo(
         SERVICE_ID,

@@ -2,6 +2,7 @@ import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Sha
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
+import { ServiceUrl } from "../service_url";
 
 // Explorer Backend
 const SERVICE_ID: ServiceID = "explorer-backend";
@@ -49,7 +50,7 @@ export async function addExplorerBackendService(
     indexerDbName: string,
     analyticsDbName: string,
     telemetryDbName: string,
-    wampInternalUrl: string,
+    wampInternalUrl: ServiceUrl,
     sharedWampBackendSecret: string,
     networkName: string,
 ): Promise<Result<null, Error>> {
@@ -78,7 +79,7 @@ export async function addExplorerBackendService(
         [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_HOST_ENVVAR, indexerDbHostname],
         [NEAR_WRITE_ONLY_TELEMETRY_DATABASE_NAME_ENVVAR, telemetryDbName],
 
-        [WAMP_URL_ENVVAR, wampInternalUrl],
+        [WAMP_URL_ENVVAR, wampInternalUrl.toString()],
         [SHARED_WAMP_BACKEND_SECRET_ENVVAR, sharedWampBackendSecret],
         [NEAR_NODE_RPC_URL_ENVVAR, `http://${nearNodeHostname}:${nearNodeRpcPortNum}`],
     ]);

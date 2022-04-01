@@ -3,6 +3,7 @@ import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
@@ -33,31 +34,14 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 export class ContractHelperServiceInfo {
-    private readonly networkInternalHostname: string;
-    private readonly networkInternalPorNum: number;
-    // Will only be set if debug mode is enabled
-    private readonly maybeHostMachineUrl: string | undefined;
-
     constructor(
-        networkInternalHostname: string,
-        networkInternalPorNum: number,
-        maybeHostMachineUrl: string | undefined,
+        public readonly networkInternalHostname: string,
+        public readonly networkInternalPorNum: number,
+        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
     ) {
         this.networkInternalHostname = networkInternalHostname;
         this.networkInternalPorNum = networkInternalPorNum;
         this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getNetworkInternalHostname(): string {
-        return this.networkInternalHostname;
-    }
-
-    public getNetworkInternalPortNum(): number {
-        return this.networkInternalPorNum;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
     }
 }
 
@@ -123,10 +107,11 @@ export async function addContractHelperService(
     }
     const serviceCtx: ServiceContext = addServiceResult.value;
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
+        "http",
         serviceCtx.getMaybePublicIPAddress(),
         serviceCtx.getPublicPorts().get(PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`,
+        "",
     )
 
     const result: ContractHelperServiceInfo = new ContractHelperServiceInfo(

@@ -3,6 +3,7 @@ import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-wamp";
 const IMAGE: string = "kurtosistech/near-explorer_wamp";
@@ -10,30 +11,21 @@ const PORT_ID = "ws";
 const PORT_NUM: number = 8080;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
 
+const URL_PROTOCOL = "ws";
+const URL_PATH = "/ws";
+
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "WAMP_NEAR_EXPLORER_PORT": PORT_NUM.toString(),
 }));
 
 export class ExplorerWampInfo {
-    private readonly internalUrl: string;
-    // This will only be set if debug mode is set
-    private readonly maybeHostMachineUrl: string | undefined;
-
     constructor(
-        internalUrl: string,
-        maybeHostMachineUrl: string | undefined,
+        public readonly internalUrl: ServiceUrl,
+        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
     ) {
         this.internalUrl = internalUrl;
         this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getInternalUrl(): string {
-        return this.internalUrl;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
     }
 }
 
@@ -64,12 +56,17 @@ export async function addExplorerWampService(
     }
     const serviceCtx  = addServiceResult.value;
 
-    const internalUrl: string = buildWsUrl(SERVICE_ID, PORT_NUM);
-
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+    const internalUrl: ServiceUrl = new ServiceUrl(
+        URL_PROTOCOL,
+        SERVICE_ID,
+        PORT_NUM,
+        URL_PATH,
+    )
+    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
+        URL_PROTOCOL,
         serviceCtx.getMaybePublicIPAddress(),
         serviceCtx.getPublicPorts().get(PORT_ID),
-        buildWsUrl,
+        URL_PATH,
     )
 
     const result: ExplorerWampInfo = new ExplorerWampInfo(
@@ -78,8 +75,4 @@ export async function addExplorerWampService(
     );
 
     return ok(result);
-}
-
-function buildWsUrl(hostname: string, portNum: number): string {
-    return `ws://${hostname}:${portNum}/ws`
 }

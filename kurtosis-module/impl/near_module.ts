@@ -10,6 +10,7 @@ import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/exp
 import { addWallet, WalletInfo } from "./services/wallet";
 import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
 import { deserializeAndValidateParams } from "./module_io/params_deserializer";
+import { ExecuteResult } from "./module_io/result";
 
 export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
 
@@ -19,36 +20,6 @@ const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
 const RESULT_JSON_PRETTY_PRINT_SPACE_NUM: number = 4;
 
-// Result returned by the execute command, serialized as JSON
-class ExecuteResult {
-    private readonly networkName: string;
-
-    private readonly rootValidatorKey: Object;
-
-    private readonly nearNodeRpcUrl: string | null;
-
-    private readonly contractHelperServiceUrl: string | null;
-
-    private readonly walletUrl: string | null;
-
-    private readonly explorerUrl: string | null;
-
-    constructor(
-        networkName: string,
-        rootValidatorKey: Object,
-        nearNodeRpcUrl: string | null,
-        contractHelperServiceUrl: string | null,
-        walletUrl: string | null,
-        explorerUrl: string | null,
-    ) {
-        this.networkName = networkName;
-        this.rootValidatorKey = rootValidatorKey;
-        this.nearNodeRpcUrl = nearNodeRpcUrl;
-        this.contractHelperServiceUrl = contractHelperServiceUrl;
-        this.walletUrl = walletUrl;
-        this.explorerUrl = explorerUrl;
-    }
-}
 
 export class NearModule implements ExecutableKurtosisModule {
     constructor() {}
@@ -90,9 +61,9 @@ export class NearModule implements ExecutableKurtosisModule {
             contractHelperDbInfo.getDbUsername(),
             contractHelperDbInfo.getDbPassword(),
             contractHelperDbInfo.getIndexerDb(),
-            indexerInfo.getNetworkInternalHostname(),
-            indexerInfo.getNetworkInternalPortNum(),
-            indexerInfo.getValidatorKey()
+            indexerInfo.networkInternalHostname,
+            indexerInfo.networkInternalPortNum,
+            indexerInfo.validatorKey,
         );
         if (addContractHelperServiceResult.isErr()) {
             return err(addContractHelperServiceResult.error);
@@ -110,15 +81,15 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addExplorerBackendResult: Result<null, Error> = await addExplorerBackendService(
             enclaveCtx,
-            indexerInfo.getNetworkInternalHostname(),
-            indexerInfo.getNetworkInternalPortNum(),
+            indexerInfo.networkInternalHostname,
+            indexerInfo.networkInternalPortNum,
             contractHelperDbInfo.getDbUsername(),
             contractHelperDbInfo.getDbPassword(),
             contractHelperDbInfo.getNetworkInternalHostname(),
             contractHelperDbInfo.getIndexerDb(),
             contractHelperDbInfo.getAnalyticsDb(),
             contractHelperDbInfo.getTelemetryDb(),
-            explorerWampInfo.getInternalUrl(),
+            explorerWampInfo.internalUrl,
             EXPLORER_WAMP_BACKEND_SHARED_SECRET,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
         );
@@ -128,8 +99,8 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
             enclaveCtx,
-            explorerWampInfo.getInternalUrl(),
-            explorerWampInfo.getMaybeHostMachineUrl(),
+            explorerWampInfo.internalUrl,
+            explorerWampInfo.maybeHostMachineUrl,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
         );
         if (addExplorerFrontendResult.isErr()) {
@@ -139,9 +110,9 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addWalletResult: Result<WalletInfo, Error> = await addWallet(
             enclaveCtx,
-            indexerInfo.getMaybeHostMachineUrl(),
-            contractHelperServiceInfo.getMaybeHostMachineUrl(),
-            explorerFrontendInfo.getMaybeHostMachineUrl(),
+            indexerInfo.maybeHostMachineUrl,
+            contractHelperServiceInfo.maybeHostMachineUrl,
+            explorerFrontendInfo.maybeHostMachineUrl,
         );
         if (addWalletResult.isErr()) {
             return err(addWalletResult.error);
@@ -151,11 +122,11 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const resultObj: ExecuteResult = new ExecuteResult(
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
-            indexerInfo.getValidatorKey(),
-            indexerInfo.getMaybeHostMachineUrl() || null,
-            contractHelperServiceInfo.getMaybeHostMachineUrl() || null,
+            indexerInfo.validatorKey,
+            indexerInfo.maybeHostMachineUrl || null,
+            contractHelperServiceInfo.maybeHostMachineUrl || null,
             maybeWalletHostMachineUrl || null,
-            explorerFrontendInfo.getMaybeHostMachineUrl() || null,
+            explorerFrontendInfo.maybeHostMachineUrl || null,
         );
 
         let stringResult;

@@ -3,6 +3,7 @@ import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { tryToFormHostMachineUrl } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
+import { ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
@@ -21,23 +22,17 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 }));
 
 export class ExplorerFrontendInfo {
-    private readonly maybeHostMachineUrl: string | undefined;
-
     constructor (
-        maybeHostMachineUrl: string | undefined,
+        public readonly maybeHostMachineUrl: ServiceUrl | undefined,
     ) {
         this.maybeHostMachineUrl = maybeHostMachineUrl;
-    }
-
-    public getMaybeHostMachineUrl(): string | undefined {
-        return this.maybeHostMachineUrl;
     }
 }
 
 export async function addExplorerFrontendService(
     enclaveCtx: EnclaveContext, 
-    wampInternalUrl: string,
-    maybeHostMachineWampUrl: string | undefined,
+    wampInternalUrl: ServiceUrl,
+    maybeHostMachineWampUrl: ServiceUrl | undefined,
     networkName: string,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -46,7 +41,7 @@ export async function addExplorerFrontendService(
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
         WAMP_INTERNAL_URL_ENVVAR,
-        wampInternalUrl,
+        wampInternalUrl.toString(),
     )
     envVars.set(
         NEAR_NETWORKS_ENVVAR,
@@ -57,7 +52,7 @@ export async function addExplorerFrontendService(
     if (maybeHostMachineWampUrl !== undefined) {
         envVars.set(
             WAMP_EXTERNAL_URL_ENVVAR, 
-            maybeHostMachineWampUrl,
+            maybeHostMachineWampUrl.toString(),
         );
     }
 
@@ -78,10 +73,11 @@ export async function addExplorerFrontendService(
     }
     const serviceCtx = addServiceResult.value;
 
-    const maybeHostMachineUrl: string | undefined = tryToFormHostMachineUrl(
+    const maybeHostMachineUrl: ServiceUrl | undefined = tryToFormHostMachineUrl(
+        "http",
         serviceCtx.getMaybePublicIPAddress(),
         serviceCtx.getPublicPorts().get(PORT_ID),
-        (ipAddr: string, portNum: number) => `http://${ipAddr}:${portNum}`,
+        "",
     );
 
     const result: ExplorerFrontendInfo = new ExplorerFrontendInfo(maybeHostMachineUrl);
