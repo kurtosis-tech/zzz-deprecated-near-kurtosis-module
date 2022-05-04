@@ -1,4 +1,4 @@
-import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, SharedPath, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
+import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
@@ -90,7 +90,7 @@ export async function addWallet(
 
     log.debug(`Wallet Parcel JS-updating command to run: ${singleCmdStringToRun}`)
 
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string, sharedDirectory: SharedPath) => {
+    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string) => {
         const result = new ContainerConfigBuilder(
             IMAGE,
         ).withUsedPorts(
