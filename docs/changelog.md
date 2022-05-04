@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.16
+### Fixes
+* Upgrade to module-api-lib 0.14.1 to support the latest version of Kurtosis
+
 # 0.5.15
 ### Features
 * Allow users to pass in `--execute-params '{"backendIpAddress": "1.2.3.4"}'` to override the backend IP address that the Wallet & Explorer frontends use for getting data

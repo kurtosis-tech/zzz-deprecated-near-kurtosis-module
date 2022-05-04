@@ -1,4 +1,4 @@
-import { EnclaveContext, SharedPath, ContainerConfig } from "kurtosis-core-api-lib";
+import { EnclaveContext, ContainerConfig } from "kurtosis-core-api-lib";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
 import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
@@ -12,7 +12,7 @@ import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
 import { deserializeAndValidateParams } from "./module_io/params_deserializer";
 import { ExecuteResult } from "./module_io/result";
 
-export type ContainerConfigSupplier = (ipAddr: string, sharedDirpath: SharedPath) => Result<ContainerConfig, Error>;
+export type ContainerConfigSupplier = (ipAddr: string) => Result<ContainerConfig, Error>;
 
 const EXPLORER_WAMP_BACKEND_SHARED_SECRET: string = "back";
 
