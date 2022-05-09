@@ -1,4 +1,6 @@
 # TBD
+### Changes
+* Upgrade to module-api-lib 0.15.0 to support the latest version of Kurtosis
 
 # 0.5.16
 ### Fixes
