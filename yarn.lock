@@ -174,10 +174,10 @@ is-fullwidth-code-point@^3.0.0:
   resolved "https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz#f116f8064fe90b3f7844a38997c0b75051269f1d"
   integrity "sha1-8Rb4Bk/pCz94RKOJl8C3UFEmnx0= sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg=="
 
-kurtosis-core-api-lib@1.45.3:
-  version "1.45.3"
-  resolved "https://registry.yarnpkg.com/kurtosis-core-api-lib/-/kurtosis-core-api-lib-1.45.3.tgz#d2c236deca13b5df328ac381069ebb5a6d678782"
-  integrity sha512-Jap1qvUJA9XyGQhInaBjiesOLiQmBxd9YMSV85uNU1Zmj/PVaGg3o614qcFqAcTvNnnqQu5MiGiMKI5CLkwpog==
+kurtosis-core-api-lib@1.46.0:
+  version "1.46.0"
+  resolved "https://registry.yarnpkg.com/kurtosis-core-api-lib/-/kurtosis-core-api-lib-1.46.0.tgz#790b1298ea8b171649b84b0ea502d0d551e4268c"
+  integrity sha512-X8cg99CiiQu6tL77+IsgzmU6wX5lhlLAKipyrVMGB8F1Ue27DdDfcQwy60q8F0UC8T9Vz9B1LI63qqDOGB9AAg==
   dependencies:
     "@grpc/grpc-js" "^1.4.4"
     "@types/google-protobuf" "^3.15.5"
@@ -190,12 +190,12 @@ kurtosis-core-api-lib@1.45.3:
     path-browserify "^1.0.1"
     tar "^6.1.11"
 
-kurtosis-module-api-lib@0.14.1:
-  version "0.14.1"
-  resolved "https://registry.yarnpkg.com/kurtosis-module-api-lib/-/kurtosis-module-api-lib-0.14.1.tgz#6884d09f5119d8122b556ea67b80b89e01c27769"
-  integrity sha512-xfMjHhOpBL3/w/v1mb4KWLyo04HrBwPE7X0XAYYIdlVo+7U96PGBgzj5npDbGBUxgQIwP52P/DQKFSEF8rnpGQ==
+kurtosis-module-api-lib@0.15.0:
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/kurtosis-module-api-lib/-/kurtosis-module-api-lib-0.15.0.tgz#51bccc6971d45fba51ec8c98baa7cbecdc5c974a"
+  integrity sha512-limeDlO0LpIM1CVJ9sZnNvg3WEw57Xe1M9fMvWYyDTMLp0APr32+iceXbrwG6IJ1GhVEGTf+T9A3eUuq1IFQMQ==
   dependencies:
-    kurtosis-core-api-lib "1.45.3"
+    kurtosis-core-api-lib "1.46.0"
     loglevel "^1.7.1"
     minimal-grpc-server "0.6.0"
     neverthrow "^4.2.2"
