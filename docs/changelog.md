@@ -1,5 +1,25 @@
 # TBD
 
+# 0.5.18
+### Features
+* Implemented static public ports
+
+### Changes
+* Upgrade to module-api-lib 0.16.0 to support the latest version of Kurtosis
+* Upgrade to kurtosis-core-api-lib 1.54.1 which adds support for static ports
+* The indexer now has a static validator private key:
+
+  ```
+  {
+    "account_id": "test.near",
+    "public_key": "ed25519:3Kuyi2DUXdoHgoaNEvCxa1m6G8xqc6Xs7WGajaqLhNmW",
+    "secret_key": "ed25519:2ykcMLiM7vCmsSECcgfmUzihBtNdBv7v2CxNi94sNt4R8ar4xsrMMYvtsSNGQDfSRhNWXEnZvgx2wzS9ViBiS9jW"
+  }
+  ```
+  
+### Fixes
+* The module now correctly uses static files
+
 # 0.5.17
 ### Changes
 * Upgrade to module-api-lib 0.15.0 to support the latest version of Kurtosis
