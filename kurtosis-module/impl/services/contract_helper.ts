@@ -6,8 +6,10 @@ import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
-const PORT_NUM: number = 3000;
-const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PRIVATE_PORT_NUM: number = 3000;
+const PUBLIC_PORT_NUM: number = 8330;
+const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
+const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-contract-helper:b6a8d0f";
 
@@ -22,7 +24,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "NEW_ACCOUNT_AMOUNT": "10000000000000000000000000",
     "NODE_ENV": "development", // Node.js environment; either `development` or `production`
     "NEAR_WALLET_ENV": "development", // Matches the value set when the Wallet image was built
-    "PORT": PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
+    "PORT": PRIVATE_PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
     "TWILIO_ACCOUNT_SID": "", // account SID from Twilio (used to send security code)
     "TWILIO_AUTH_TOKEN": "", // auth token from Twilio (used to send security code)
     "TWILIO_FROM_PHONE": "+14086179592", // phone number from which to send SMS with security code (international format, starting with `+`)
@@ -49,9 +51,12 @@ export async function addContractHelperService(
     nearNodePrivateRpcUrl: ServiceUrl,
     validatorKey: Object,
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
-    log.info(`Adding contract helper service running on port '${PORT_NUM}'`);
+    log.info(`Adding contract helper service running on port '${PRIVATE_PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
-    usedPorts.set(PORT_ID, PORT_SPEC);
+    usedPorts.set(PORT_ID, PRIVATE_PORT_SPEC);
+
+    const publicPorts: Map<string, PortSpec> = new Map();
+    publicPorts.set(PORT_ID, PUBLIC_PORT_SPEC);
 
     let validatorKeyStr: string;
     try {
@@ -88,6 +93,8 @@ export async function addContractHelperService(
             IMAGE,
         ).withUsedPorts(
             usedPorts
+        ).withPublicPorts(
+            publicPorts,
         ).withEnvironmentVariableOverrides(
             envvars
         ).build();
