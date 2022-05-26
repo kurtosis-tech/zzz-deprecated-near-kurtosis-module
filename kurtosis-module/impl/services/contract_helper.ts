@@ -7,7 +7,9 @@ import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 const SERVICE_ID: ServiceID = "contract-helper-service"
 const PORT_ID = "rest";
 const PORT_NUM: number = 3000;
+const PUBLIC_PORT_NUM: number = 3001;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-contract-helper:b6a8d0f";
 
@@ -53,6 +55,9 @@ export async function addContractHelperService(
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PORT_SPEC);
 
+    const publicPorts: Map<string, PortSpec> = new Map();
+    publicPorts.set(PORT_ID, PUBLIC_PORT_SPEC);
+
     let validatorKeyStr: string;
     try {
         validatorKeyStr = JSON.stringify(validatorKey, null, VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES);
@@ -88,6 +93,8 @@ export async function addContractHelperService(
             IMAGE,
         ).withUsedPorts(
             usedPorts
+        ).withPublicPorts(
+            publicPorts,
         ).withEnvironmentVariableOverrides(
             envvars
         ).build();

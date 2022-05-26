@@ -1,4 +1,10 @@
 # TBD
+### Features
+* Implemented static public ports
+
+### Changes
+* Upgrade to module-api-lib 0.16.0 to support the latest version of Kurtosis
+* Upgrade to kurtosis-core-api-lib 1.54.1 which adds support for static ports
 
 # 0.5.17
 ### Changes

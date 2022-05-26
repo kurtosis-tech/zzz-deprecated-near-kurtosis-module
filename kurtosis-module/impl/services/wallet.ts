@@ -9,7 +9,9 @@ const PORT_NUM: number = 3004;
 const IMAGE: string = "kurtosistech/near-wallet:17684565";
 const PORT_ID = "http";
 const PORT_PROTOCOL = "http";
+const PUBLIC_PORT_NUM: number = 3004;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 
 // These variable names come from https://github.com/near/near-wallet/blob/master/packages/frontend/src/config.js
 const CONTRACT_HELPER_JS_VAR: string = "ACCOUNT_HELPER_URL";
@@ -62,6 +64,9 @@ export async function addWallet(
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PORT_SPEC);
 
+    const publicPorts: Map<string, PortSpec> = new Map();
+    publicPorts.set(PORT_ID, PUBLIC_PORT_SPEC)
+
     // Javascript variables that will be slotted into the Wallet's source JS code
     const jsVars: Map<string, string> = new Map();
     jsVars.set(
@@ -95,6 +100,8 @@ export async function addWallet(
             IMAGE,
         ).withUsedPorts(
             usedPorts
+        ).withPublicPorts(
+            publicPorts
         ).withEntrypointOverride([
             // If we don't override the entrypoint, it gets set to starting the NginX server that serves the Wallet assets
             "sh", 

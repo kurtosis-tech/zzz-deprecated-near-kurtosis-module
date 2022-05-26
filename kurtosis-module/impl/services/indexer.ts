@@ -8,12 +8,16 @@ import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 const SERVICE_ID: ServiceID = "indexer-node"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
 const RPC_PORT_NUM: number = 3030;
+const RPC_PUBLIC_PORT_NUM: number = 3030;
 const RPC_PORT_ID = "rpc";
 const RPC_PORT_SPEC = new PortSpec(RPC_PORT_NUM, PortProtocol.TCP);
+const RPC_PUBLIC_PORT_SPEC = new PortSpec(RPC_PUBLIC_PORT_NUM, PortProtocol.TCP);
 const RPC_PORT_PROTOCOL = "http";
 const GOSSIP_PORT_NUM: number = 24567;
+const GOSSIP_PUBLIC_PORT_NUM: number = 24567;
 const GOSSIP_PORT_ID = "gossip";
 const GOSSIP_PORT_SPEC = new PortSpec(GOSSIP_PORT_NUM, PortProtocol.TCP);
+const GOSSIP_PUBLIC_PORT_SPEC = new PortSpec(GOSSIP_PUBLIC_PORT_NUM, PortProtocol.TCP);
 
 const DATABASE_URL_ENVVAR = "DATABASE_URL";
 
@@ -46,6 +50,10 @@ export async function addIndexer(
     usedPorts.set(RPC_PORT_ID, RPC_PORT_SPEC);
     usedPorts.set(GOSSIP_PORT_ID, GOSSIP_PORT_SPEC);
 
+    const publicPorts: Map<string, PortSpec> = new Map();
+    publicPorts.set(RPC_PORT_ID, RPC_PUBLIC_PORT_SPEC);
+    publicPorts.set(GOSSIP_PORT_ID, GOSSIP_PUBLIC_PORT_SPEC);
+
     const envvars: Map<string, string> = new Map();
     envvars.set(
         DATABASE_URL_ENVVAR,
@@ -57,6 +65,8 @@ export async function addIndexer(
             IMAGE,
         ).withUsedPorts(
             usedPorts
+        ).withPublicPorts(
+            publicPorts,
         ).withEnvironmentVariableOverrides(
             envvars
         ).build();

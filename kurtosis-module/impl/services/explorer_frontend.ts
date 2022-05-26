@@ -9,7 +9,9 @@ const PORT_ID = "http";
 const PORT_PROTOCOL = "http";
 const IMAGE: string = "kurtosistech/near-explorer_frontend:5ef5b6c";
 const PORT_NUM: number = 3000;
+const PUBLIC_PORT_NUM: number = 3000;
 const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 
 const WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";
 const WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
@@ -38,6 +40,9 @@ export async function addExplorerFrontendService(
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PORT_SPEC);
 
+    const publicPorts: Map<string, PortSpec> = new Map();
+    publicPorts.set(PORT_ID, PUBLIC_PORT_SPEC);
+
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(
         WAMP_INTERNAL_URL_ENVVAR,
@@ -57,6 +62,8 @@ export async function addExplorerFrontendService(
             IMAGE,
         ).withUsedPorts(
             usedPorts,
+        ).withPublicPorts(
+            publicPorts,
         ).withEnvironmentVariableOverrides(
                 envVars
         ).build();
