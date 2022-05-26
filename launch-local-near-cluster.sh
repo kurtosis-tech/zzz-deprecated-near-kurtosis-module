@@ -16,7 +16,7 @@ EXPLORER_URL_PROPERTY="explorerUrl"
 WALLET_URL_PROPERTY="walletUrl"
 ALIAS_NAME="local_near"
 NEAR_KURTOSIS_DIRPATH="${HOME}/.neartosis"
-NEAR_MODULE_IMAGE="kurtosistech/near-kurtosis-module:0.5.18-dev"
+NEAR_MODULE_IMAGE="kurtosistech/near-kurtosis-module"
 KURTOSIS_CMD="kurtosis"
 
 # Magic variables that the NEAR CLI will use if set (see https://github.com/near/near-cli/pull/885/files )
