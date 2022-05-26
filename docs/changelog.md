@@ -1,4 +1,9 @@
 # TBD
+### Features
+* The indexer now has a static validator private key, TDOOOOOOOO
+
+### Fixes
+* The module now correctly uses static files
 
 # 0.5.17
 ### Changes
