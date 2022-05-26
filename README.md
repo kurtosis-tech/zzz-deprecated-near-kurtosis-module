@@ -14,3 +14,10 @@ The validator key of the node that it starts is:
 Quickstart
 ----------
 Follow the instructions on [the NEAR docs](https://docs.near.org/docs/tools/kurtosis-localnet).
+
+Static URLs
+-----------
+Near node RPC url: `http://127.0.0.1:8332`,
+Contract helper service url: `http://127.0.0.1:8330`,
+Wallet url: `http://127.0.0.1:8334`,
+Explorer url: `http://127.0.0.1:8331`

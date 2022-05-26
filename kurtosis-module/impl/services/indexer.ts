@@ -8,16 +8,16 @@ import * as path from "path";
 
 const SERVICE_ID: ServiceID = "indexer-node"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
-const RPC_PORT_NUM: number = 3030;
-const RPC_PUBLIC_PORT_NUM: number = 3030;
+const RPC_PRIVATE_PORT_NUM: number = 3030;
+const RPC_PUBLIC_PORT_NUM: number = 8332;
 const RPC_PORT_ID = "rpc";
-const RPC_PORT_SPEC = new PortSpec(RPC_PORT_NUM, PortProtocol.TCP);
+const RPC_PRIVATE_PORT_SPEC = new PortSpec(RPC_PRIVATE_PORT_NUM, PortProtocol.TCP);
 const RPC_PUBLIC_PORT_SPEC = new PortSpec(RPC_PUBLIC_PORT_NUM, PortProtocol.TCP);
 const RPC_PORT_PROTOCOL = "http";
-const GOSSIP_PORT_NUM: number = 24567;
-const GOSSIP_PUBLIC_PORT_NUM: number = 24567;
+const GOSSIP_PRIVATE_PORT_NUM: number = 24567;
+const GOSSIP_PUBLIC_PORT_NUM: number = 8333;
 const GOSSIP_PORT_ID = "gossip";
-const GOSSIP_PORT_SPEC = new PortSpec(GOSSIP_PORT_NUM, PortProtocol.TCP);
+const GOSSIP_PRIVATE_PORT_SPEC = new PortSpec(GOSSIP_PRIVATE_PORT_NUM, PortProtocol.TCP);
 const GOSSIP_PUBLIC_PORT_SPEC = new PortSpec(GOSSIP_PUBLIC_PORT_NUM, PortProtocol.TCP);
 
 const LOCALNET_CONFIG_DIRPATH_ON_MODULE = "/static-files/near-configs/localnet"
@@ -59,8 +59,8 @@ export async function addIndexer(
     const localnetConfigFilesArtifactUuid = uploadLocalnetConfigResult.value;
 
     const usedPorts: Map<string, PortSpec> = new Map();
-    usedPorts.set(RPC_PORT_ID, RPC_PORT_SPEC);
-    usedPorts.set(GOSSIP_PORT_ID, GOSSIP_PORT_SPEC);
+    usedPorts.set(RPC_PORT_ID, RPC_PRIVATE_PORT_SPEC);
+    usedPorts.set(GOSSIP_PORT_ID, GOSSIP_PRIVATE_PORT_SPEC);
 
     const publicPorts: Map<string, PortSpec> = new Map();
     publicPorts.set(RPC_PORT_ID, RPC_PUBLIC_PORT_SPEC);
