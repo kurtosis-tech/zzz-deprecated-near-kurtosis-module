@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.19
 ### Features
 * Added wait-for-availability checks to the indexer, wallet, contract-helper service, explorer-wamp, and explorer
 
