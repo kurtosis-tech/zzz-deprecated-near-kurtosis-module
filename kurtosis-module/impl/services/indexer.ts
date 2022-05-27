@@ -5,6 +5,7 @@ import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 import * as path from "path";
+import { waitForPortAvailability } from "../service_port_availability_checker"
 
 const SERVICE_ID: ServiceID = "indexer-node"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
@@ -33,6 +34,9 @@ const GET_VALIDATOR_KEY_CMD: string[] = [
 
 const MAX_NUM_GET_VALIDATOR_KEY_RETRIES: number = 20;
 const MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES: number = 500;
+
+const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 10_000;
 
 export class IndexerInfo {
     constructor(
@@ -145,7 +149,15 @@ export async function addIndexer(
         validatorKey,
     );
 
-    
+    const waitForPortAvailabilityResult = await waitForPortAvailability(
+        RPC_PRIVATE_PORT_NUM,
+        serviceCtx.getPrivateIPAddress(),
+        MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES,
+        PORT_AVAILABILITY_TIMEOUT_MILLIS,
+    )
+    if (waitForPortAvailabilityResult.isErr()) {
+        return err(waitForPortAvailabilityResult.error);
+    }
 
     return ok(result);
 }

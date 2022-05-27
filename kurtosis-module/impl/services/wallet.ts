@@ -1,7 +1,8 @@
-import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
+import { EnclaveContext, ServiceID, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
+import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "wallet";
@@ -44,8 +45,8 @@ const AVAILABILITY_CHECK_CMD: string[] = [
     "ps aux | grep my_init | grep -v 'grep' | grep -v 'npm'",
 ]
 
-const MAX_AVAILABILITY_CHECKS: number = 30;
-const MILLIS_BETWEEN_AVAILABILITY_CHECKS: number = 1000;
+const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
 
 export class WalletInfo {
     constructor(
@@ -118,11 +119,15 @@ export async function addWallet(
     }
     const serviceCtx = addServiceResult.value;
 
-    const waitForAvailabilityResult = await waitUntilAvailable(serviceCtx)
-    if (waitForAvailabilityResult.isErr()) {
-        return err(waitForAvailabilityResult.error);
+    const waitForPortAvailabilityResult = await waitForPortAvailability(
+        PRIVATE_PORT_NUM,
+        serviceCtx.getPrivateIPAddress(),
+        MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES,
+        PORT_AVAILABILITY_TIMEOUT_MILLIS,
+    )
+    if (waitForPortAvailabilityResult.isErr()) {
+        return err(waitForPortAvailabilityResult.error);
     }
-
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,
@@ -138,25 +143,6 @@ export async function addWallet(
     const result: WalletInfo = new WalletInfo(publicUrl)
 
     return ok(result);
-}
-
-async function waitUntilAvailable(serviceCtx: ServiceContext): Promise<Result<null, Error>> {
-    for (let i: number = 0; i < MAX_AVAILABILITY_CHECKS; i++) {
-        const execCmdResult = await serviceCtx.execCommand(AVAILABILITY_CHECK_CMD)
-        if (execCmdResult.isOk()) {
-            const logOutput = execCmdResult.value[1];
-            // If there's log output, it means there's a running NginX process
-            if (logOutput.length > 0) {
-                return ok(null);
-            }
-        }
-        await new Promise(resolve => {
-            setTimeout(resolve, MILLIS_BETWEEN_AVAILABILITY_CHECKS);
-        });
-    }
-    return err(new Error(
-        `The Wallet container didn't become available even after ${MAX_AVAILABILITY_CHECKS} checks with ${MILLIS_BETWEEN_AVAILABILITY_CHECKS}ms between checks`
-    ));
 }
 
 // The NEAR Wallet is bundled using Parcel down into assets that get served statically via NginX
