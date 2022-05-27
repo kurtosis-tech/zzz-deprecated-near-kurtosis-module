@@ -76,7 +76,7 @@ export async function addIndexer(
         NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER,
         path.basename(LOCALNET_CONFIG_DIRPATH_ON_MODULE),
     )
-    const commandToRun = `diesel migration run && indexer-explorer --home-dir "${localnetConfigDirpath}" run --store-genesis sync-from-latest`
+    const commandToRun = `./diesel migration run && ./indexer-explorer --home-dir "${localnetConfigDirpath}" run --store-genesis sync-from-latest`
 
     const filesArtifactMounts = new Map<FilesArtifactUUID, string>();
     filesArtifactMounts.set(localnetConfigFilesArtifactUuid, NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER)
@@ -144,6 +144,8 @@ export async function addIndexer(
         publicRpcUrl,
         validatorKey,
     );
+
+    
 
     return ok(result);
 }
