@@ -2,21 +2,25 @@ import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Ser
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
+import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-wamp";
 const IMAGE: string = "kurtosistech/near-explorer_wamp";
 const PORT_ID = "ws";
-const PORT_NUM: number = 8080;
-const PORT_SPEC = new PortSpec(PORT_NUM, PortProtocol.TCP);
+const PRIVATE_PORT_NUM: number = 8080;
+const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 
 const PORT_PROTOCOL = "ws";
 const URL_PATH = "/ws";
 
 const SHARED_WAMP_BACKEND_SECRET_ENVVAR: string = "WAMP_NEAR_EXPLORER_BACKEND_SECRET";
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "WAMP_NEAR_EXPLORER_PORT": PORT_NUM.toString(),
+    "WAMP_NEAR_EXPLORER_PORT": PRIVATE_PORT_NUM.toString(),
 }));
+
+const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
 
 export class ExplorerWampInfo {
     constructor(
@@ -30,7 +34,7 @@ export async function addExplorerWampService(
     sharedWampBackendSecret: string,
 ): Promise<Result<ExplorerWampInfo, Error>> {
     const usedPorts: Map<string, PortSpec> = new Map();
-    usedPorts.set(PORT_ID, PORT_SPEC);
+    usedPorts.set(PORT_ID, PRIVATE_PORT_SPEC);
 
     const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
     envVars.set(SHARED_WAMP_BACKEND_SECRET_ENVVAR, sharedWampBackendSecret);
@@ -51,6 +55,16 @@ export async function addExplorerWampService(
         return err(addServiceResult.error);
     }
     const serviceCtx  = addServiceResult.value;
+
+    const waitForPortAvailabilityResult = await waitForPortAvailability(
+        PRIVATE_PORT_NUM,
+        serviceCtx.getPrivateIPAddress(),
+        MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES,
+        PORT_AVAILABILITY_TIMEOUT_MILLIS,
+    )
+    if (waitForPortAvailabilityResult.isErr()) {
+        return err(waitForPortAvailabilityResult.error);
+    }
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,

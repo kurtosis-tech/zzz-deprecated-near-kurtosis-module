@@ -2,6 +2,7 @@ import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, Ser
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
+import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-frontend";
@@ -22,6 +23,9 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
     // "NEAR_NETWORKS": "[{\"name\": \"localnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
 }));
+
+const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
 
 export class ExplorerFrontendInfo {
     constructor (
@@ -75,6 +79,16 @@ export async function addExplorerFrontendService(
         return err(addServiceResult.error);
     }
     const serviceCtx = addServiceResult.value;
+
+    const waitForPortAvailabilityResult = await waitForPortAvailability(
+        PRIVATE_PORT_NUM,
+        serviceCtx.getPrivateIPAddress(),
+        MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES,
+        PORT_AVAILABILITY_TIMEOUT_MILLIS,
+    )
+    if (waitForPortAvailabilityResult.isErr()) {
+        return err(waitForPortAvailabilityResult.error);
+    }
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,
