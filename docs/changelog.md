@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Fixed an issue with the indexer database not getting created
 
 # 0.5.18
 ### Features

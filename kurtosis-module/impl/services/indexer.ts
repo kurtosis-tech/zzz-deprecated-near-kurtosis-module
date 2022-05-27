@@ -72,18 +72,29 @@ export async function addIndexer(
         `postgres://${dbUsername}:${dbUserPassword}@${dbPrivateUrl.ipAddress}:${dbPrivateUrl.portNumber}/${dbName}`
     )
 
+    const localnetConfigDirpath = path.join(
+        NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER,
+        path.basename(LOCALNET_CONFIG_DIRPATH_ON_MODULE),
+    )
+    const commandToRun = `diesel migration run && indexer-explorer --home-dir "${localnetConfigDirpath}" run --store-genesis sync-from-latest`
+
     const filesArtifactMounts = new Map<FilesArtifactUUID, string>();
     filesArtifactMounts.set(localnetConfigFilesArtifactUuid, NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER)
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
-        ).withUsedPorts(
+        ).withEnvironmentVariableOverrides(
+            envvars
+        ).withEntrypointOverride([
+            "sh",
+            "-c",
+        ]).withCmdOverride([
+            commandToRun,
+        ]).withUsedPorts(
             usedPorts
         ).withPublicPorts(
             publicPorts,
-        ).withEnvironmentVariableOverrides(
-            envvars
         ).withFiles(
             filesArtifactMounts,
         ).build();
