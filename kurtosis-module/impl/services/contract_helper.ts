@@ -2,6 +2,7 @@ import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, Con
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
+import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-service"
@@ -34,6 +35,9 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "WALLET_URL": "" // NOTE: we can't set this because there's a circular dependency between 
 }));
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
+
+const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
 
 export class ContractHelperServiceInfo {
     constructor(
@@ -107,6 +111,15 @@ export async function addContractHelperService(
     }
     const serviceCtx: ServiceContext = addServiceResult.value;
 
+    const waitForPortAvailabilityResult = await waitForPortAvailability(
+        PRIVATE_PORT_NUM,
+        serviceCtx.getPrivateIPAddress(),
+        MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES,
+        PORT_AVAILABILITY_TIMEOUT_MILLIS,
+    )
+    if (waitForPortAvailabilityResult.isErr()) {
+        return err(waitForPortAvailabilityResult.error);
+    }
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,

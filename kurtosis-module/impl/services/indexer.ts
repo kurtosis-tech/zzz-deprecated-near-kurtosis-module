@@ -5,6 +5,7 @@ import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
 import { ContainerConfigSupplier } from "../near_module";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 import * as path from "path";
+import { waitForPortAvailability } from "../service_port_availability_checker"
 
 const SERVICE_ID: ServiceID = "indexer-node"
 const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
@@ -33,6 +34,9 @@ const GET_VALIDATOR_KEY_CMD: string[] = [
 
 const MAX_NUM_GET_VALIDATOR_KEY_RETRIES: number = 20;
 const MILLIS_BETWEEN_GET_VALIDATOR_KEY_RETRIES: number = 500;
+
+const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 10_000;
 
 export class IndexerInfo {
     constructor(
@@ -72,18 +76,29 @@ export async function addIndexer(
         `postgres://${dbUsername}:${dbUserPassword}@${dbPrivateUrl.ipAddress}:${dbPrivateUrl.portNumber}/${dbName}`
     )
 
+    const localnetConfigDirpath = path.join(
+        NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER,
+        path.basename(LOCALNET_CONFIG_DIRPATH_ON_MODULE),
+    )
+    const commandToRun = `./diesel migration run && ./indexer-explorer --home-dir "${localnetConfigDirpath}" run --store-genesis sync-from-latest`
+
     const filesArtifactMounts = new Map<FilesArtifactUUID, string>();
     filesArtifactMounts.set(localnetConfigFilesArtifactUuid, NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER)
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
             IMAGE,
-        ).withUsedPorts(
+        ).withEnvironmentVariableOverrides(
+            envvars
+        ).withEntrypointOverride([
+            "sh",
+            "-c",
+        ]).withCmdOverride([
+            commandToRun,
+        ]).withUsedPorts(
             usedPorts
         ).withPublicPorts(
             publicPorts,
-        ).withEnvironmentVariableOverrides(
-            envvars
         ).withFiles(
             filesArtifactMounts,
         ).build();
@@ -133,6 +148,16 @@ export async function addIndexer(
         publicRpcUrl,
         validatorKey,
     );
+
+    const waitForPortAvailabilityResult = await waitForPortAvailability(
+        RPC_PRIVATE_PORT_NUM,
+        serviceCtx.getPrivateIPAddress(),
+        MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES,
+        PORT_AVAILABILITY_TIMEOUT_MILLIS,
+    )
+    if (waitForPortAvailabilityResult.isErr()) {
+        return err(waitForPortAvailabilityResult.error);
+    }
 
     return ok(result);
 }
