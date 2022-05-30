@@ -1,4 +1,6 @@
 # TBD
+### Changes
+* Upgraded Ubuntu machine image in Circle CI configuration to version `ubuntu-2004:202201-02`
 
 # 0.5.18
 ### Features
