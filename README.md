@@ -11,13 +11,21 @@ The validator key of the node that it starts is:
 }
 ```
 
+The URLs of the services started inside Kurtosis are as follows:
+* Near node RPC URL: `http://127.0.0.1:8332`,
+* Contract helper service URL: `http://127.0.0.1:8330`,
+* Wallet URL: `http://127.0.0.1:8334`,
+* Explorer URL: `http://127.0.0.1:8331`
+
 Quickstart
 ----------
 Follow the instructions on [the NEAR docs](https://docs.near.org/docs/tools/kurtosis-localnet).
 
-Static URLs
------------
-Near node RPC url: `http://127.0.0.1:8332`,
-Contract helper service url: `http://127.0.0.1:8330`,
-Wallet url: `http://127.0.0.1:8334`,
-Explorer url: `http://127.0.0.1:8331`
+For Kurtosis Devs: Upgrading Dependencies
+-----------------------------------------
+1. Build a new image of the NEAR indexer-for-explorer using the latest code
+    1. Clone [the Kurtosis fork of the NEAR indexer-for-explorer](https://github.com/kurtosis-tech/near-indexer-for-explorer)
+    1. Run `git fetch upstream` to pull the latest changes to your local copy of the repo
+    1. Check out the `kurtosis` branch
+    1. Run `git merge upstream/master` to merge the latest changes into the Kurtosis branch
+    1. Run `build-docker-image.sh` to build the image (this will take ~45 minutes!)
