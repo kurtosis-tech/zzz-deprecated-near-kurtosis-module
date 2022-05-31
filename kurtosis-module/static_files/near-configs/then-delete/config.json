@@ -21,8 +21,7 @@
     },
     "limits_config": {
       "json_payload_max_size": 10485760
-    },
-    "enable_debug_rpc": false
+    }
   },
   "telemetry": {
     "endpoints": []
@@ -31,7 +30,6 @@
     "addr": "0.0.0.0:24567",
     "external_address": "",
     "boot_nodes": "",
-    "whitelist_nodes": "",
     "max_num_peers": 40,
     "minimum_outbound_peers": 5,
     "ideal_connections_lo": 30,
@@ -134,21 +132,11 @@
   "archive": true,
   "log_summary_style": "colored",
   "gc_blocks_limit": 2,
-  "gc_fork_clean_step": 100,
-  "gc_num_epochs_to_keep": 5,
   "view_client_threads": 4,
   "epoch_sync_enabled": true,
   "view_client_throttle_period": {
     "secs": 30,
     "nanos": 0
   },
-  "trie_viewer_state_size_limit": 50000,
-  "use_db_migration_snapshot": true,
-  "store": {
-    "enable_statistics": false,
-    "enable_statistics_export": true,
-    "max_open_files": 10000,
-    "col_state_cache_size": 536870912,
-    "block_size": 16384
-  }
+  "trie_viewer_state_size_limit": 50000
 }
