@@ -1,4 +1,6 @@
 # TBD
+
+# 0.5.20
 ### Changes
 * Upgraded Ubuntu machine image in Circle CI configuration to version `ubuntu-2004:202201-02`
 * Upgraded `ansi-regex` to v5.0.1 due the vulnerability found by dependabot in v5.0.0
