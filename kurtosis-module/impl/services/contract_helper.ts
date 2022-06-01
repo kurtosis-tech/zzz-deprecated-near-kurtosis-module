@@ -24,7 +24,8 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "MAIL_USER": "",
     "NEW_ACCOUNT_AMOUNT": "10000000000000000000000000",
     "NODE_ENV": "development", // Node.js environment; either `development` or `production`
-    "NEAR_WALLET_ENV": "development", // Matches the value set when the Wallet image was built
+    //I changed this value because now valid values are "testnet and mainnet"
+    "NEAR_WALLET_ENV": "testnet", // Matches the value set when the Wallet image was built
     "PORT": PRIVATE_PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
     "TWILIO_ACCOUNT_SID": "", // account SID from Twilio (used to send security code)
     "TWILIO_AUTH_TOKEN": "", // auth token from Twilio (used to send security code)

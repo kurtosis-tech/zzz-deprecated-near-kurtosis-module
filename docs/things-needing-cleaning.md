@@ -91,3 +91,65 @@
 ### Wallet
 * The NEAR wallet is out-of-date, so I used the `build_image.sh` in the `near-wallet` repo to build an updated one
 * The NEAR wallet uses Parcel, which requires a `.env` file that only picks up environment variables at BUILD time, which requires `docker exec`ing an `npm run build` AFTER the container starts!!! This takes a _very_ long time
+
+
+### Leandro annotations
+
+INDEXER
+- Kevin sent me the lates Docker image by slack
+- I unzipped it with gunzip
+- I pushed the image in my Docker doing:
+    - `docker image load` docker image load -i near-indexer-for-explorer.tar
+- The new image has bean loaded `kurtosistech/near-indexer-for-explorer:c07fb7b`
+- I run the image with:
+    - docker run --entrypoint sh -it kurtosistech/near-indexer-for-explorer:c07fb7b
+- I executed this command inside the container:
+    - export DATABASE_URL=""
+- Then, the following command to run the indexer and generate the config and genesis file:
+    -  ./indexer-explorer init
+- Then I copied the files to the static-files folder (here you have to overwrite the existing ones but leaving a copy because later we will have to compare them and respect some values ​​that they currently have)
+    - cp a17103259c00:/root/.near/config.json /Users/lporoli/Kurtosis/near-kurtosis-module/kurtosis-module/static_files/near-configs/localnet
+    - Changes in config.json:
+        - Dejar estos valores así: "tracked_shards": [0],
+          "archive": true,
+    - docker cp a17103259c00:/root/.near/genesis.json /Users/lporoli/Kurtosis/near-kurtosis-module/kurtosis-module/static_files/near-configs/localnet
+    - Changes in genesis.json
+        - I replaced the values that we had in the previous one:
+          -  "genesis_time": "2022-05-26T17:51:59.259808104Z",
+          -  "chain_id": "localnet",
+          - "public_key": "ed25519:3Kuyi2DUXdoHgoaNEvCxa1m6G8xqc6Xs7WGajaqLhNmW",
+          - "public_key": "ed25519:3Kuyi2DUXdoHgoaNEvCxa1m6G8xqc6Xs7WGajaqLhNmW",
+
+CONTRACT HELPER
+
+- I cloned the repo https://github.com/kurtosis-tech/near-contract-helper
+- I commented some lines of code in different files, you can see my branch:
+    - leandro.poroli/changes-to-build-docker-image
+- I built the Docker image running:
+    - docker build -t kurtosistech/near-contract-helper:dd16f8c -f ./Dockerfile.app ./
+- This image was generated: kurtosistech/near-contract-helper:dd16f8c
+
+
+EXPLORER BACKEND
+
+- I cloned Near explorer: git clone git@github.com:near/near-explorer.git
+- The package-lock.json file in backend, frontend and common folders were deleted so I have to search for these in old commits using git bisect, then I found them and I copied them inside each folder
+- I edited backend Docker file, adding:
+  COPY ./tsconfig.json ../
+- I built it with:
+    - docker build -t kurtosistech/near-explorer_backend:8df44b7 -f ./backend/Dockerfile ./
+- I edited frontend Docker file, adding
+    - COPY ./tsconfig.json ../
+    - It fails when I try to build it
+
+  IMAGES:
+  - Backend: kurtosistech/near-explorer_backend:8df44b7
+  - Frontend:
+  - Wamp: kurtosistech/near-explorer_wamp:8df44b7
+
+
+WALLET
+- I cloned repo https://github.com/near/near-wallet. master branch
+- I built the image with:
+    - docker build -t kurtosistech/near-wallet:6e3e98c -f ./Dockerfile ./
+- This image was generated: kurtosistech/near-wallet:6e3e98c
