@@ -6,7 +6,7 @@ import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "explorer-wamp";
-const IMAGE: string = "kurtosistech/near-explorer_wamp";
+const IMAGE: string = "kurtosistech/near-explorer_wamp:8df44b7";
 const PORT_ID = "ws";
 const PRIVATE_PORT_NUM: number = 8080;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);

@@ -6,7 +6,7 @@ import { ServiceUrl } from "../service_url";
 
 // Explorer Backend
 const SERVICE_ID: ServiceID = "explorer-backend";
-const IMAGE: string = "kurtosistech/near-explorer_backend:5ef5b6c";
+const IMAGE: string = "kurtosistech/near-explorer_backend:8df44b7";
 const NEAR_NODE_RPC_URL_ENVVAR: string = "NEAR_RPC_URL";
 
 // These environment variables come from https://github.com/near/near-explorer/blob/master/backend/config/env-indexer-mainnet
