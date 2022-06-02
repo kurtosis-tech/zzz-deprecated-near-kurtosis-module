@@ -123,8 +123,30 @@ INDEXER
 CONTRACT HELPER
 
 - I cloned the repo https://github.com/kurtosis-tech/near-contract-helper
-- I commented some lines of code in different files, you can see my branch:
-    - leandro.poroli/changes-to-build-docker-image
+- I commented some lines in Dockerfile.app because these will overwrite the env that we are setting in Near Kurtosis Module:
+    - The Dockerfile.app now looks like this:
+    # I commented this line because we are setting the env variables in Near Kurtosis Module
+    # FROM nearprotocol/bridge as bridge
+    FROM node:12
+    WORKDIR /usr/app
+    COPY ./package.json .
+    COPY ./yarn.lock .
+    RUN yarn
+    COPY . .
+    # I commented these lines because we are setting the env variables in Near Kurtosis Module
+    # and if we left these, the others will be overwritten
+    # RUN grep -v ACCOUNT_CREATOR_KEY .env.sample | grep -v NODE_URL | grep -v INDEXER_DB_CONNECTION > .env
+    # COPY --from=bridge /root/.near/localnet/node0/validator_key.json .
+    # RUN ACCOUNT_CREATOR_KEY=$(cat validator_key.json | tr -d " \t\n\r") && echo "ACCOUNT_CREATOR_KEY=$ACCOUNT_CREATOR_KEY" >> .env
+    CMD ["sh", "-c",  "sleep 10 && yarn start-no-env"]
+- I also added this configuration in the package.json file
+  - "start-no-env": "supervisor app" (inside the script section)
+- I edited some env vars in services-> contract_helper.ts (inside this repo):
+  - "TWILIO_ACCOUNT_SID": "ACtest", // account SID from Twilio (used to send security code)
+    "TWILIO_AUTH_TOKEN": "test"
+- I added extra env because the app was throwing erros without theses:
+  - "FUNDED_ACCOUNT_CREATOR_KEY": "{}",
+    "ACCOUNT_CREATOR_KEYS":'{"private_keys":[]}'
 - I built the Docker image running:
     - docker build -t kurtosistech/near-contract-helper:dd16f8c -f ./Dockerfile.app ./
 - This image was generated: kurtosistech/near-contract-helper:dd16f8c

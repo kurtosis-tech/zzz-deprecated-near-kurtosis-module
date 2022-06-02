@@ -27,13 +27,15 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     //I changed this value because now valid values are "testnet and mainnet"
     "NEAR_WALLET_ENV": "testnet", // Matches the value set when the Wallet image was built
     "PORT": PRIVATE_PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
-    "TWILIO_ACCOUNT_SID": "", // account SID from Twilio (used to send security code)
-    "TWILIO_AUTH_TOKEN": "", // auth token from Twilio (used to send security code)
+    "TWILIO_ACCOUNT_SID": "ACtest", // account SID from Twilio (used to send security code)
+    "TWILIO_AUTH_TOKEN": "test", // auth token from Twilio (used to send security code)
     "TWILIO_FROM_PHONE": "+14086179592", // phone number from which to send SMS with security code (international format, starting with `+`)
     // NOTE: We can't set this because there's a circular dependency between Wallet and Contract Helper app, where
     //  they both need to point to each others' _publicly-facing ports_ (which are only available after starting the container)
     // Following the lead of https://github.com/near/local/blob/master/docker-compose.yml, we're choosing to break Contract Helper app
-    "WALLET_URL": "" // NOTE: we can't set this because there's a circular dependency between 
+    "WALLET_URL": "", // NOTE: we can't set this because there's a circular dependency between
+    "FUNDED_ACCOUNT_CREATOR_KEY": "{}",
+    "ACCOUNT_CREATOR_KEYS":'{"private_keys":[]}',
 }));
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
