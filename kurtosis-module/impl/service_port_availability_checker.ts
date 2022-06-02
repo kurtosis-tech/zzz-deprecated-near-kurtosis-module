@@ -7,6 +7,10 @@ export async function waitForPortAvailability(
     millisBetweenRetries: number,
     maxTimeoutMillis: number,
 ): Promise<Result<null, Error>> {
+    return ok(null)
+    // TODO The tcp-port-used library seems to work fine on normal machines, but fails on M1 Macs for unknown reasons
+    //  We should either figure out why tcp-port-used doesn't work, or pick a new library!
+    /*
     return tcpPortUsed.waitUntilUsedOnHost(
         privatePortNum,
         host,
@@ -19,4 +23,5 @@ export async function waitForPortAvailability(
             `${maxTimeoutMillis}ms with ${millisBetweenRetries}ms between ` +
             `retries`))
     })
+    */
 }
