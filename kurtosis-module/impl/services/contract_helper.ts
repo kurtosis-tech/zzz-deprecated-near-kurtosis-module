@@ -38,7 +38,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
-const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_0000;
 
 export class ContractHelperServiceInfo {
     constructor(
