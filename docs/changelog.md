@@ -1,4 +1,6 @@
 # TBD
+### Fixes
+* Disabled wait-for-availability check for now because it doesn't seem to work on M1 Macs for unknown reasons (and all our users are blocked)
 
 # 0.5.20
 ### Changes
