@@ -56,6 +56,7 @@ export async function addExplorerWampService(
     }
     const serviceCtx  = addServiceResult.value;
 
+    /*
     const waitForPortAvailabilityResult = await waitForPortAvailability(
         PRIVATE_PORT_NUM,
         serviceCtx.getPrivateIPAddress(),
@@ -65,6 +66,7 @@ export async function addExplorerWampService(
     if (waitForPortAvailabilityResult.isErr()) {
         return err(waitForPortAvailabilityResult.error);
     }
+    */
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,

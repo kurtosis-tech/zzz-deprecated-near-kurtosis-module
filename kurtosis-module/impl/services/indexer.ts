@@ -149,6 +149,7 @@ export async function addIndexer(
         validatorKey,
     );
 
+    /*
     const waitForPortAvailabilityResult = await waitForPortAvailability(
         RPC_PRIVATE_PORT_NUM,
         serviceCtx.getPrivateIPAddress(),
@@ -158,6 +159,7 @@ export async function addIndexer(
     if (waitForPortAvailabilityResult.isErr()) {
         return err(waitForPortAvailabilityResult.error);
     }
+    */
 
     return ok(result);
 }

@@ -111,6 +111,7 @@ export async function addContractHelperService(
     }
     const serviceCtx: ServiceContext = addServiceResult.value;
 
+    /*
     const waitForPortAvailabilityResult = await waitForPortAvailability(
         PRIVATE_PORT_NUM,
         serviceCtx.getPrivateIPAddress(),
@@ -120,6 +121,7 @@ export async function addContractHelperService(
     if (waitForPortAvailabilityResult.isErr()) {
         return err(waitForPortAvailabilityResult.error);
     }
+    */
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,

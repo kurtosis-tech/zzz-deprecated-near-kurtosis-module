@@ -119,6 +119,7 @@ export async function addWallet(
     }
     const serviceCtx = addServiceResult.value;
 
+    /*
     const waitForPortAvailabilityResult = await waitForPortAvailability(
         PRIVATE_PORT_NUM,
         serviceCtx.getPrivateIPAddress(),
@@ -128,6 +129,7 @@ export async function addWallet(
     if (waitForPortAvailabilityResult.isErr()) {
         return err(waitForPortAvailabilityResult.error);
     }
+    */
 
     const getUrlsResult = getPrivateAndPublicUrlsForPortId(
         serviceCtx,
