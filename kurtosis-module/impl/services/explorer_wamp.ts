@@ -33,6 +33,7 @@ export async function addExplorerWampService(
     enclaveCtx: EnclaveContext,
     sharedWampBackendSecret: string,
 ): Promise<Result<ExplorerWampInfo, Error>> {
+    log.info(`Adding explorer wamp service running on port '${PRIVATE_PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PRIVATE_PORT_SPEC);
 

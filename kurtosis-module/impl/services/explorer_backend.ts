@@ -53,6 +53,7 @@ export async function addExplorerBackendService(
     sharedWampBackendSecret: string,
     networkName: string,
 ): Promise<Result<null, Error>> {
+    log.info(`Adding explorer backend service`);
     const envVars: Map<string, string> = new Map([
         [NETWORK_NAME_ENVVAR, networkName],
 

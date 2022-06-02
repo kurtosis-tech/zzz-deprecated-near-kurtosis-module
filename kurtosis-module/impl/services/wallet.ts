@@ -61,7 +61,7 @@ export async function addWallet(
     contractHelperPublicUrl: ServiceUrl,
     explorerPublicUrl: ServiceUrl,
 ): Promise<Result<WalletInfo, Error>> {
-    log.info(`Adding wallet running on port '${PRIVATE_PORT_NUM}'`);
+    log.info(`Adding wallet service running on port '${PRIVATE_PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PRIVATE_PORT_SPEC);
 

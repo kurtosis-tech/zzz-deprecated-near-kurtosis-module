@@ -41,6 +41,7 @@ export async function addExplorerFrontendService(
     wampPublicUrl: ServiceUrl,
     networkName: string,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
+    log.info(`Adding explorer frotend service running on port '${PRIVATE_PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PRIVATE_PORT_SPEC);
 
