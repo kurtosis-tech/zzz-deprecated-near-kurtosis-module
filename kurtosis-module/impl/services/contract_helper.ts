@@ -12,7 +12,7 @@ const PUBLIC_PORT_NUM: number = 8330;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 const PORT_PROTOCOL = "http";
-const IMAGE: string = "kurtosistech/near-contract-helper:dd16f8c";
+const IMAGE: string = "kurtosistech/near-contract-helper:c0b1d4d";
 
 // Dynamic environment variables
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
@@ -120,7 +120,13 @@ export async function addContractHelperService(
             usedPorts
         ).withPublicPorts(
             publicPorts,
-        ).withEnvironmentVariableOverrides(
+        ).withCmdOverride([
+            "sh",
+            "-c",
+            // We need to override the CMD because the Dockerfile (https://github.com/near/near-contract-helper/blob/master/Dockerfile.app)
+            // loads hardcoded environment variables that we don't want
+            "sleep 10 && yarn start-no-env",
+        ]).withEnvironmentVariableOverrides(
             envvars
         ).build();
         return ok(result);

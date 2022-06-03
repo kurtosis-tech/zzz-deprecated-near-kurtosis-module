@@ -31,7 +31,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 }));
 */
 
-// TODO REPLACE THIS WITH DYNAMIC VALUE
+// TODO REPLACE THIS WITH DYNAMIC VALUES
 const NETWORKS_CONFIG_JSON = `
 {
     "mainnet": {
@@ -50,9 +50,9 @@ const NETWORKS_CONFIG_JSON = `
       "nearWalletProfilePrefix": "https://wallet.openshards.io/profile"
     },
     "localnet": {
-      "explorerLink": "https://127.0.0.1:8331",
+      "explorerLink": "http://127.0.0.1:8331",
       "aliases": [],
-      "nearWalletProfilePrefix": "https://127.0.0.1:8334/profile"
+      "nearWalletProfilePrefix": "http://127.0.0.1:8334/profile"
     }
   }
 `

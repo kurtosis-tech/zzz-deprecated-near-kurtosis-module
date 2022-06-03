@@ -6,7 +6,7 @@ import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "wallet";
-const IMAGE: string = "kurtosistech/near-wallet:6e3e98c";
+const IMAGE: string = "kurtosistech/near-wallet:1ae0bfe4";
 const PORT_ID = "http";
 const PORT_PROTOCOL = "http";
 const PRIVATE_PORT_NUM: number = 3004;
