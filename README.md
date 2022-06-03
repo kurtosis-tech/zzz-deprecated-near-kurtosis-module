@@ -14,8 +14,8 @@ The validator key of the node that it starts is:
 The URLs of the services started inside Kurtosis are as follows:
 * Near node RPC URL: `http://127.0.0.1:8332`,
 * Contract helper service URL: `http://127.0.0.1:8330`,
-* Wallet URL: `http://127.0.0.1:8334`,
 * Explorer URL: `http://127.0.0.1:8331`
+* Wallet URL: `http://127.0.0.1:8334`,
 
 Quickstart
 ----------

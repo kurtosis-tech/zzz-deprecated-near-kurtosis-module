@@ -49,7 +49,7 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
 
     // See https://github.com/near/near-contract-helper/issues/533 for an explanation of why this is empty
     // "FUNDED_ACCOUNT_CREATOR_KEY": "{}",
-    "FUNDED_ACCOUNT_CREATOR_KEY": "{}",
+    "FUNDED_ACCOUNT_CREATOR_KEY": "",
     // "ACCOUNT_CREATOR_KEYS":'{"private_keys":[]}',
     "ACCOUNT_CREATOR_KEYS":"",
 
