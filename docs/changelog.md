@@ -1,4 +1,9 @@
 # TBD
+### Fixes
+* Upgrade all services to latest versions, as an emergency bugfix for the latest NEAR CLI not working with the images inside Kurtosis
+
+### Removals
+* Removed the WAMP because it's no longer required for the explorer
 
 # 0.5.21
 ### Fixes
