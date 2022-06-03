@@ -5,12 +5,13 @@ import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_h
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
 import { addIndexer, IndexerInfo } from "./services/indexer";
 import { addExplorerWampService, ExplorerWampInfo } from "./services/explorer_wamp";
-import { addExplorerBackendService } from "./services/explorer_backend";
+import { addExplorerBackendService, ExplorerBackendInfo } from "./services/explorer_backend";
 import { addExplorerFrontendService, ExplorerFrontendInfo } from "./services/explorer_frontend";
 import { addWallet, WalletInfo } from "./services/wallet";
 import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
 import { deserializeAndValidateParams } from "./module_io/params_deserializer";
 import { ExecuteResult } from "./module_io/result";
+import { ServiceUrl } from "./service_url";
 
 export type ContainerConfigSupplier = (ipAddr: string) => Result<ContainerConfig, Error>;
 
@@ -67,6 +68,7 @@ export class NearModule implements ExecutableKurtosisModule {
         }
         const contractHelperServiceInfo: ContractHelperServiceInfo = addContractHelperServiceResult.value;
 
+        /*
         const addExplorerWampResult: Result<ExplorerWampInfo, Error> = await addExplorerWampService(
             enclaveCtx,
             EXPLORER_WAMP_BACKEND_SHARED_SECRET
@@ -75,8 +77,9 @@ export class NearModule implements ExecutableKurtosisModule {
             return err(addExplorerWampResult.error);
         }
         const explorerWampInfo: ExplorerWampInfo = addExplorerWampResult.value;
+        */
 
-        const addExplorerBackendResult: Result<null, Error> = await addExplorerBackendService(
+        const addExplorerBackendResult: Result<ExplorerBackendInfo, Error> = await addExplorerBackendService(
             enclaveCtx,
             indexerInfo.privateRpcUrl,
             contractHelperDbInfo.privateUrl,
@@ -85,20 +88,27 @@ export class NearModule implements ExecutableKurtosisModule {
             contractHelperDbInfo.indexerDb,
             contractHelperDbInfo.analyticsDb,
             contractHelperDbInfo.telemetryDb,
+            /*
             explorerWampInfo.privateUrl,
             EXPLORER_WAMP_BACKEND_SHARED_SECRET,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
+            */
         );
         if (addExplorerBackendResult.isErr()) {
             return err(addExplorerBackendResult.error);
         }
+        const explorerBackendInfo = addExplorerBackendResult.value
 
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
             enclaveCtx,
-            executeParams.backendIpAddress,
+            // executeParams.backendIpAddress,
+            explorerBackendInfo.privateUrl,
+            explorerBackendInfo.publicUrl,
+            /*
             explorerWampInfo.privateUrl,
             explorerWampInfo.publicUrl,
             EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME,
+            */
         );
         if (addExplorerFrontendResult.isErr()) {
             return err(addExplorerFrontendResult.error);

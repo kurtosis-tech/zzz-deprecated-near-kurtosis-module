@@ -29,3 +29,6 @@ For Kurtosis Devs: Upgrading Dependencies
     1. Check out the `kurtosis` branch
     1. Run `git merge upstream/master` to merge the latest changes into the Kurtosis branch
     1. Run `build-docker-image.sh` to build the image (this will take ~45 minutes!)
+
+
+* TODO Wallet doesn't have a way to configure at runtime (only build), so we have to `sed` the Parcel-compiled, minified `.js` file
