@@ -138,6 +138,6 @@ echo "         ${KURTOSIS_CMD} enclave stop ${ENCLAVE_ID}"
 echo ""
 echo "  ACTION To remove your cluster, run:"
 echo ""
-echo "         ${KURTOSIS_CMD} clean -a
+echo "         ${KURTOSIS_CMD} clean -a"
 echo ""
 echo "============================================================ SUCCESS ================================================================================"
