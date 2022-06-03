@@ -6,8 +6,7 @@ import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 // Explorer Backend
 const SERVICE_ID: ServiceID = "explorer-backend";
-const IMAGE: string = "near-explorer_backend";
-// const IMAGE: string = "kurtosistech/near-explorer_backend:8df44b7";
+const IMAGE: string = "kurtosistech/near-explorer_backend:924c832";
 const PORT_ID = "http";
 const PORT_APP_PROTOCOL = "http"
 const PRIVATE_PORT_NUM: number = 8080;
