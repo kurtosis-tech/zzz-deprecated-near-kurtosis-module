@@ -8,7 +8,7 @@ import * as path from "path";
 import { waitForPortAvailability } from "../service_port_availability_checker"
 
 const SERVICE_ID: ServiceID = "indexer-node"
-const IMAGE: string = "kurtosistech/near-indexer-for-explorer:7510e7f";
+const IMAGE: string = "kurtosistech/near-indexer-for-explorer:c07fb7b";
 const RPC_PRIVATE_PORT_NUM: number = 3030;
 const RPC_PUBLIC_PORT_NUM: number = 8332;
 const RPC_PORT_ID = "rpc";

@@ -1,5 +1,12 @@
 # TBD
 
+# 0.5.22
+### Fixes
+* Upgrade all services to latest versions, as an emergency bugfix for the latest NEAR CLI not working with the images inside Kurtosis
+
+### Removals
+* Removed the WAMP because it's no longer required for the explorer
+
 # 0.5.21
 ### Fixes
 * Disabled wait-for-availability check for now because it doesn't seem to work on M1 Macs for unknown reasons (and all our users are blocked)

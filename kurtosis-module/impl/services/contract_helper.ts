@@ -12,32 +12,53 @@ const PUBLIC_PORT_NUM: number = 8330;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 const PORT_PROTOCOL = "http";
-const IMAGE: string = "kurtosistech/near-contract-helper:b6a8d0f";
+const IMAGE: string = "kurtosistech/near-contract-helper:c0b1d4d";
 
+// Dynamic environment variables
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
 const NODE_RPC_URL_ENVVAR: string = "NODE_URL";
+
+// See https://github.com/near/near-contract-helper/blob/master/.env.sample for where these are drawn from
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
+    // ACCOUNT_CREATOR_KEY will be set dynamically 
+
     "MAIL_HOST": "smtp.ethereal.email",
     "MAIL_PASSWORD": "",
     "MAIL_PORT": "587",
     "MAIL_USER": "",
     "NEW_ACCOUNT_AMOUNT": "10000000000000000000000000",
+
     "NODE_ENV": "development", // Node.js environment; either `development` or `production`
-    "NEAR_WALLET_ENV": "development", // Matches the value set when the Wallet image was built
+    //I changed this value because now valid values are "testnet and mainnet"
+    "NEAR_WALLET_ENV": "testnet", // Matches the value set when the Wallet image was built
+
     "PORT": PRIVATE_PORT_NUM.toString(), // Used internally by the contract helper; does not have to correspond to the external IP or DNS name and can link to a host machine running the Docker container
+
+    "USE_MOCK_TWILIO": "true",
     "TWILIO_ACCOUNT_SID": "", // account SID from Twilio (used to send security code)
     "TWILIO_AUTH_TOKEN": "", // auth token from Twilio (used to send security code)
     "TWILIO_FROM_PHONE": "+14086179592", // phone number from which to send SMS with security code (international format, starting with `+`)
+
     // NOTE: We can't set this because there's a circular dependency between Wallet and Contract Helper app, where
     //  they both need to point to each others' _publicly-facing ports_ (which are only available after starting the container)
     // Following the lead of https://github.com/near/local/blob/master/docker-compose.yml, we're choosing to break Contract Helper app
-    "WALLET_URL": "" // NOTE: we can't set this because there's a circular dependency between 
+    "WALLET_URL": "",
+
+    // INDEXER_DB_CONNECTION will get set dynamically
+
+    // See https://github.com/near/near-contract-helper/issues/533 for an explanation of why this is empty
+    // "FUNDED_ACCOUNT_CREATOR_KEY": "{}",
+    "FUNDED_ACCOUNT_CREATOR_KEY": "",
+    // "ACCOUNT_CREATOR_KEYS":'{"private_keys":[]}',
+    "ACCOUNT_CREATOR_KEYS":"",
+
+    "NEARPAY_SECRET_KEY":"your_secret_key",
 }));
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
 const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
-const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
+const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_0000;
 
 export class ContractHelperServiceInfo {
     constructor(
@@ -99,7 +120,13 @@ export async function addContractHelperService(
             usedPorts
         ).withPublicPorts(
             publicPorts,
-        ).withEnvironmentVariableOverrides(
+        ).withCmdOverride([
+            "sh",
+            "-c",
+            // We need to override the CMD because the Dockerfile (https://github.com/near/near-contract-helper/blob/master/Dockerfile.app)
+            // loads hardcoded environment variables that we don't want
+            "sleep 10 && yarn start-no-env",
+        ]).withEnvironmentVariableOverrides(
             envvars
         ).build();
         return ok(result);
