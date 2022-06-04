@@ -14,22 +14,6 @@ const PUBLIC_PORT_NUM: number = 8331;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 
-/*
-const WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";
-const WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
-const NEAR_NETWORKS_ENVVAR: string = "NEAR_NETWORKS";
-const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "PORT": PRIVATE_PORT_NUM.toString(),
-
-
-
-
-    "NEAR_EXPLORER_DATA_SOURCE": "INDEXER_BACKEND", // Tells the frontend to use the indexer backend, rather than the legacy sqlite backend
-    // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
-    // "NEAR_NETWORKS": "[{\"name\": \"localnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
-}));
-*/
-
 // TODO REPLACE THIS WITH DYNAMIC VALUES
 const NETWORKS_CONFIG_JSON = `
 {
@@ -70,11 +54,6 @@ export async function addExplorerFrontendService(
     // The IP address to use for connecting to the backend services
     backendPrivateUrl: ServiceUrl,
     backendPublicUrl: ServiceUrl,
-    /*
-    wampPrivateUrl: ServiceUrl,
-    wampPublicUrl: ServiceUrl,
-    networkName: string,
-    */
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     log.info(`Adding explorer frontend service running on port '${PRIVATE_PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -104,28 +83,6 @@ export async function addExplorerFrontendService(
         ["NEAR_EXPLORER_CONFIG__BACKEND__PORT", backendPublicUrl.portNumber.toString()],
         ["NEAR_EXPLORER_CONFIG__BACKEND__SECURE", "false"],
     ]);
-    /*
-    for (let [key, value] of STATIC_ENVVARS.entries()) {
-        envVars.set(key, value);
-    }
-    */
-
-
-    /*
-    const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
-    envVars.set(
-        WAMP_INTERNAL_URL_ENVVAR,
-        wampPrivateUrl.toString(),
-    )
-    envVars.set(
-        NEAR_NETWORKS_ENVVAR,
-        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://${backendIpAddress}:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
-    )
-    envVars.set(
-        WAMP_EXTERNAL_URL_ENVVAR, 
-        wampPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
-    );
-    */
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
