@@ -1,5 +1,9 @@
 # TBD
 
+# 0.5.23
+### Fixes
+* Fixed a bug where the Explorer wasn't respecting the `backendIpAddress` request from the user's execute params
+
 # 0.5.22
 ### Fixes
 * Upgrade all services to latest versions, as an emergency bugfix for the latest NEAR CLI not working with the images inside Kurtosis

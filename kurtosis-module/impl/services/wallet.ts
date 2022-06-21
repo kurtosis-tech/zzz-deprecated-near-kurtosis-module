@@ -10,7 +10,12 @@ const IMAGE: string = "kurtosistech/near-wallet:1ae0bfe4";
 const PORT_ID = "http";
 const PORT_PROTOCOL = "http";
 const PRIVATE_PORT_NUM: number = 3004;
-const PUBLIC_PORT_NUM: number = 8334;
+// TODO This is a hack! There's a circular dependency between the Explorer Frontend and the Wallet, where
+// the Wallet wants to display a link to the Explorer and the Wallet wants to display a link to the Explorer
+// Frontend. To break this cycle, we have the Wallet start on a static public port and the Explorer show
+// a link to the Wallet using that static public port before the Wallet has started (and the Wallet will be
+// started afterwards). This is why we expose this constant.
+export const PUBLIC_PORT_NUM: number = 8334;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 
@@ -56,7 +61,7 @@ export class WalletInfo {
 
 export async function addWallet(
     enclaveCtx: EnclaveContext,
-    backendIpAddress: string,
+    userRequestedBackendIpAddress: string,
     nearNodePublicRpcUrl: ServiceUrl,
     contractHelperPublicUrl: ServiceUrl,
     explorerPublicUrl: ServiceUrl,
@@ -72,15 +77,15 @@ export async function addWallet(
     const jsVars: Map<string, string> = new Map();
     jsVars.set(
         NODE_URL_JS_VAR, 
-        nearNodePublicRpcUrl.toStringWithIpAddressOverride(backendIpAddress),
+        nearNodePublicRpcUrl.toStringWithIpAddressOverride(userRequestedBackendIpAddress),
     )
     jsVars.set(
         CONTRACT_HELPER_JS_VAR, 
-        contractHelperPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+        contractHelperPublicUrl.toStringWithIpAddressOverride(userRequestedBackendIpAddress),
     )
     jsVars.set(
         EXPLORER_URL_JS_VAR, 
-        explorerPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
+        explorerPublicUrl.toStringWithIpAddressOverride(userRequestedBackendIpAddress),
     )
     for (let [key, value] of STATIC_JS_VARS.entries()) {
         jsVars.set(key, value);
