@@ -81,6 +81,7 @@ export class NearModule implements ExecutableKurtosisModule {
 
         const addExplorerFrontendResult: Result<ExplorerFrontendInfo, Error> = await addExplorerFrontendService(
             enclaveCtx,
+            executeParams.backendIpAddress,
             explorerBackendInfo.privateUrl,
             explorerBackendInfo.publicUrl,
         );
