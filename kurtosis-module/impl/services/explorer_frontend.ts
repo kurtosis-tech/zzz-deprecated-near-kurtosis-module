@@ -4,6 +4,7 @@ import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
 import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
+import { PUBLIC_PORT_NUM as WALLET_PUBLIC_PORT_NUM } from "./wallet";
 
 const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
@@ -13,48 +14,6 @@ const PRIVATE_PORT_NUM: number = 3000;
 const PUBLIC_PORT_NUM: number = 8331;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
-
-/*
-const WAMP_INTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_INTERNAL_URL";
-const WAMP_EXTERNAL_URL_ENVVAR: string = "WAMP_NEAR_EXPLORER_URL";
-const NEAR_NETWORKS_ENVVAR: string = "NEAR_NETWORKS";
-const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
-    "PORT": PRIVATE_PORT_NUM.toString(),
-
-
-
-
-    "NEAR_EXPLORER_DATA_SOURCE": "INDEXER_BACKEND", // Tells the frontend to use the indexer backend, rather than the legacy sqlite backend
-    // It's not clear what this value does - it's pulled as-is from https://github.com/near/near-explorer/blob/master/frontend/package.json#L31
-    // "NEAR_NETWORKS": "[{\"name\": \"localnet\", \"explorerLink\": \"http://localhost:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]",
-}));
-*/
-
-// TODO REPLACE THIS WITH DYNAMIC VALUES
-const NETWORKS_CONFIG_JSON = `
-{
-    "mainnet": {
-      "explorerLink": "https://explorer.near.org/",
-      "aliases": ["explorer.near.org", "explorer.mainnet.near.org", "explorer.nearprotocol.com", "explorer.mainnet.nearprotocol.com"],
-      "nearWalletProfilePrefix": "https://wallet.near.org/profile"
-    },
-    "testnet": {
-      "explorerLink": "https://explorer.testnet.near.org/",
-      "aliases": ["explorer.testnet.near.org", "explorer.testnet.nearprotocol.com"],
-      "nearWalletProfilePrefix": "https://wallet.testnet.near.org/profile"
-    },
-    "guildnet": {
-      "explorerLink": "https://explorer.guildnet.near.org/",
-      "aliases": ["explorer.guildnet.near.org"],
-      "nearWalletProfilePrefix": "https://wallet.openshards.io/profile"
-    },
-    "localnet": {
-      "explorerLink": "http://127.0.0.1:8331",
-      "aliases": [],
-      "nearWalletProfilePrefix": "http://127.0.0.1:8334/profile"
-    }
-  }
-`
 
 const MILLIS_BETWEEN_PORT_AVAILABILITY_RETRIES: number = 500;
 const PORT_AVAILABILITY_TIMEOUT_MILLIS:  number = 5_000;
@@ -67,14 +26,10 @@ export class ExplorerFrontendInfo {
 
 export async function addExplorerFrontendService(
     enclaveCtx: EnclaveContext, 
+    userRequestedBackendIpAddress: string,
     // The IP address to use for connecting to the backend services
-    backendPrivateUrl: ServiceUrl,
-    backendPublicUrl: ServiceUrl,
-    /*
-    wampPrivateUrl: ServiceUrl,
-    wampPublicUrl: ServiceUrl,
-    networkName: string,
-    */
+    explorerBackendPrivateUrl: ServiceUrl,
+    explorerBackendPublicUrl: ServiceUrl,
 ): Promise<Result<ExplorerFrontendInfo, Error>> {
     log.info(`Adding explorer frontend service running on port '${PRIVATE_PORT_NUM}'`);
     const usedPorts: Map<string, PortSpec> = new Map();
@@ -83,49 +38,57 @@ export async function addExplorerFrontendService(
     const publicPorts: Map<string, PortSpec> = new Map();
     publicPorts.set(PORT_ID, PUBLIC_PORT_SPEC);
 
-    const backendPrivateIp = backendPrivateUrl.ipAddress
-    const backendPublicIp = backendPublicUrl.ipAddress
+    const backendPrivateIp = explorerBackendPrivateUrl.ipAddress
+
+    // There's a circular dependency between the Explorer Frontend and the Wallet, where
+    // the Wallet wants to display a link to the Explorer and the Wallet wants to display a link to the Explorer
+    // Frontend. To break this cycle, we have the Wallet start on a static public port and the Explorer show
+    // a link to the Wallet using that static public port before the Wallet has started (and the Wallet will be
+    // started afterwards). This code here is for creating the link to the Wallet before the Wallet has started.
+    const walletPublicUrl = `http://${userRequestedBackendIpAddress}:${WALLET_PUBLIC_PORT_NUM}`
+    const networksConfigJson: string = `
+    {
+        "mainnet": {
+            "explorerLink": "https://explorer.near.org/",
+            "aliases": ["explorer.near.org", "explorer.mainnet.near.org", "explorer.nearprotocol.com", "explorer.mainnet.nearprotocol.com"],
+            "nearWalletProfilePrefix": "https://wallet.near.org/profile"
+        },
+        "testnet": {
+            "explorerLink": "https://explorer.testnet.near.org/",
+            "aliases": ["explorer.testnet.near.org", "explorer.testnet.nearprotocol.com"],
+            "nearWalletProfilePrefix": "https://wallet.testnet.near.org/profile"
+        },
+        "guildnet": {
+            "explorerLink": "https://explorer.guildnet.near.org/",
+            "aliases": ["explorer.guildnet.near.org"],
+            "nearWalletProfilePrefix": "https://wallet.openshards.io/profile"
+        },
+        "localnet": {
+            "explorerLink": "${explorerBackendPublicUrl.toStringWithIpAddressOverride(userRequestedBackendIpAddress)}",
+            "aliases": [],
+            "nearWalletProfilePrefix": "${walletPublicUrl}/profile"
+        }
+    }
+    `
     const envVars: Map<string, string> = new Map([
         // TODO MAKE THIS MATCH BACKEND???
         ["NEAR_EXPLORER_CONFIG__NETWORK_NAME", "localnet"],
-        ["NEAR_EXPLORER_CONFIG__NETWORKS", NETWORKS_CONFIG_JSON],
+        ["NEAR_EXPLORER_CONFIG__NETWORKS", networksConfigJson],
 
         ["PORT", PRIVATE_PORT_NUM.toString()],
 
         ["NEAR_EXPLORER_CONFIG__BACKEND_SSR__HOSTS__MAINNET", backendPrivateIp],
         ["NEAR_EXPLORER_CONFIG__BACKEND_SSR__HOSTS__TESTNET", backendPrivateIp],
         ["NEAR_EXPLORER_CONFIG__BACKEND_SSR__HOSTS__GUILDNET", backendPrivateIp],
-        ["NEAR_EXPLORER_CONFIG__BACKEND_SSR__PORT", backendPrivateUrl.portNumber.toString()],
+        ["NEAR_EXPLORER_CONFIG__BACKEND_SSR__PORT", explorerBackendPrivateUrl.portNumber.toString()],
         ["NEAR_EXPLORER_CONFIG__BACKEND_SSR__SECURE", "false"],
 
-        ["NEAR_EXPLORER_CONFIG__BACKEND__HOSTS__MAINNET", backendPublicIp],
-        ["NEAR_EXPLORER_CONFIG__BACKEND__HOSTS__TESTNET", backendPublicIp],
-        ["NEAR_EXPLORER_CONFIG__BACKEND__HOSTS__GUILDNET", backendPublicIp],
-        ["NEAR_EXPLORER_CONFIG__BACKEND__PORT", backendPublicUrl.portNumber.toString()],
+        ["NEAR_EXPLORER_CONFIG__BACKEND__HOSTS__MAINNET", userRequestedBackendIpAddress],
+        ["NEAR_EXPLORER_CONFIG__BACKEND__HOSTS__TESTNET", userRequestedBackendIpAddress],
+        ["NEAR_EXPLORER_CONFIG__BACKEND__HOSTS__GUILDNET", userRequestedBackendIpAddress],
+        ["NEAR_EXPLORER_CONFIG__BACKEND__PORT", explorerBackendPublicUrl.portNumber.toString()],
         ["NEAR_EXPLORER_CONFIG__BACKEND__SECURE", "false"],
     ]);
-    /*
-    for (let [key, value] of STATIC_ENVVARS.entries()) {
-        envVars.set(key, value);
-    }
-    */
-
-
-    /*
-    const envVars: Map<string, string> = new Map(STATIC_ENVVARS);
-    envVars.set(
-        WAMP_INTERNAL_URL_ENVVAR,
-        wampPrivateUrl.toString(),
-    )
-    envVars.set(
-        NEAR_NETWORKS_ENVVAR,
-        `[{\"name\": \"${networkName}\", \"explorerLink\": \"http://${backendIpAddress}:3000/\", \"aliases\": [\"localhost:3000\", \"127.0.0.1:3000\"], \"nearWalletProfilePrefix\": \"https://wallet.testnet.near.org/profile\"}]`,
-    )
-    envVars.set(
-        WAMP_EXTERNAL_URL_ENVVAR, 
-        wampPublicUrl.toStringWithIpAddressOverride(backendIpAddress),
-    );
-    */
 
     const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
         const result: ContainerConfig = new ContainerConfigBuilder(
