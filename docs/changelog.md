@@ -1,5 +1,8 @@
 # TBD
 
+### Changes
+* Migrate repo to use internal cli tool, `kudet`, for release workflow and getting docker image tags
+
 # 0.5.23
 ### Fixes
 * Fixed a bug where the Explorer wasn't respecting the `backendIpAddress` request from the user's execute params
