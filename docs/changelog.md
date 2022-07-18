@@ -28,7 +28,7 @@
 # 0.5.19
 ### Features
 * Added wait-for-availability checks to the indexer, wallet, contract-helper service, explorer-wamp, and explorer
-
+gi
 ### Fixes
 * Fixed an issue with the indexer database not getting created
 
