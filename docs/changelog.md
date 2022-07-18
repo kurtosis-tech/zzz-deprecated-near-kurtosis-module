@@ -2,6 +2,7 @@
 
 ### Changes
 * Migrate repo to use internal cli tool, `kudet`, for release workflow and getting docker image tags
+* Upgrade core to 1.55.2
 
 # 0.5.23
 ### Fixes
