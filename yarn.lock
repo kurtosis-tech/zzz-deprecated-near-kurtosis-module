@@ -99,7 +99,7 @@
   resolved "https://registry.yarnpkg.com/@types/tcp-port-used/-/tcp-port-used-1.0.1.tgz#4e15eada6d9f63a5e6c5ef73348d6023f1e91157"
   integrity sha512-6pwWTx8oUtWvsiZUCrhrK/53MzKVLnuNSSaZILPy3uMes9QnTrLMar9BDlJArbMOjDcjb3QXFk6Rz8qmmuySZw==
 
-ansi-regex@^5.0.1:
+ansi-regex@^5.0.0:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-5.0.1.tgz#082cb2c89c9fe8659a311a53bd6a4dc5301db304"
   integrity sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==
@@ -210,10 +210,10 @@ is2@^2.0.6:
     ip-regex "^4.1.0"
     is-url "^1.2.4"
 
-kurtosis-core-api-lib@1.54.1:
-  version "1.54.1"
-  resolved "https://registry.yarnpkg.com/kurtosis-core-api-lib/-/kurtosis-core-api-lib-1.54.1.tgz#f167c80d09c1c6468c8b5159113dd4bbd0d03040"
-  integrity sha512-69HhQQVcLDJd02+N63HZa6kW8lkzShWyIRRqQsOxCMa3u02b+1nTPb6hUcQ/FxMEfs3LrRSJoEc2kQf4o0cIpg==
+kurtosis-core-api-lib@1.55.2:
+  version "1.55.2"
+  resolved "https://registry.yarnpkg.com/kurtosis-core-api-lib/-/kurtosis-core-api-lib-1.55.2.tgz#5c3a8d2d3931b376431abb3495dbf857b9ea9f5a"
+  integrity sha512-RmrGLsB0mhV5Y8poxglqzamosntxVYso+vtczY44vDB6x6x0f9IAqoeei9tZg6dLvO06zOpIFv8xhGC7HExqgw==
   dependencies:
     "@grpc/grpc-js" "^1.4.4"
     "@types/google-protobuf" "^3.15.5"
@@ -226,12 +226,12 @@ kurtosis-core-api-lib@1.54.1:
     path-browserify "^1.0.1"
     tar "^6.1.11"
 
-kurtosis-module-api-lib@0.16.0:
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/kurtosis-module-api-lib/-/kurtosis-module-api-lib-0.16.0.tgz#0f1b478b9989887ae3ec01456f6a902fd100272f"
-  integrity sha512-G1uBeeoTiQGLQEGZ921GAlEtZia7LzwQTnKVCcFZDIHeqIp2frlCxbZZqof9Dc3GnNxVnd8l+YBTah92o3rnhQ==
+kurtosis-module-api-lib@0.17.0:
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/kurtosis-module-api-lib/-/kurtosis-module-api-lib-0.17.0.tgz#3af671a440b6115283bb95112795001003c0abde"
+  integrity sha512-XJP3I8vzKKXO5QtCMBLqjie9ZR+6YMz9Nt9FBWb+UlN69mh09NZrexpZ9WyorsGUSGgdUtqFKFQr092c4z0Q6A==
   dependencies:
-    kurtosis-core-api-lib "1.54.1"
+    kurtosis-core-api-lib "1.55.2"
     loglevel "^1.7.1"
     minimal-grpc-server "0.6.0"
     neverthrow "^4.2.2"

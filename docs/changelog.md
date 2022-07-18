@@ -1,5 +1,10 @@
 # TBD
 
+### Changes
+* Migrate repo to use internal cli tool, `kudet`, for release workflow and getting docker image tags
+* Upgrade core to 1.55.2
+* Upgrade module-api-lib to 0.17.0
+
 # 0.5.23
 ### Fixes
 * Fixed a bug where the Explorer wasn't respecting the `backendIpAddress` request from the user's execute params
@@ -181,7 +186,7 @@
 * Use the new module API lib, which replaces all references of "Lambda" with "module"
 
 ### Breaking Changes
-* Upgrade to the [module API lib 0.10.0](https://github.com/kurtosis-tech/kurtosis-module-api-lib/blob/develop/docs/changelog.md#0100), which replaces all references of "Lambda" with "module"
+* Upgrade to the module API lib 0.10.0, which replaces all references of "Lambda" with "module"
     * Users will need the latest version of Kurtosis CLI which has `module exec` rather than `lambda exec` to run this NEAR module
 
 # 0.3.5
@@ -198,11 +203,11 @@
 
 # 0.3.3
 ### Features
-* Upgrade to [Lambda API Lib 0.9.2](https://github.com/kurtosis-tech/kurtosis-lambda-api-lib/blob/develop/docs/changelog.md#092)
+* Upgrade to Lambda API Lib 0.9.2
 
 # 0.3.2
 ### Fixes
-* Uploaded to [Lambda API Lib 0.9.1](https://github.com/kurtosis-tech/kurtosis-lambda-api-lib/blob/develop/docs/changelog.md#091)
+* Uploaded to Lambda API Lib 0.9.1
 
 # 0.3.1
 ### Fixes
