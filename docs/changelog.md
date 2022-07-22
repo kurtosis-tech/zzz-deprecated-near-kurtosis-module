@@ -1,7 +1,11 @@
 # TBD
+### Features
+* Added CircleCi `check_latest_version` workflow for running a scheduled pipeline every day to control successful module execution
+
+### Fixes
+* Fixes Near docs broken links
 
 # 0.5.24
-
 ### Changes
 * Migrate repo to use internal cli tool, `kudet`, for release workflow and getting docker image tags
 * Upgrade core to 1.55.2
@@ -77,7 +81,7 @@
 
 ### Changes
 * Moved the Kurtosis CLI installation in the "Install Prerequisites" section up to 2, to make it more obvious
-* Removed the quickstart docs here in favor of [the official NEAR docs](https://docs.near.org/docs/tools/kurtosis-localnet)
+* Removed the quickstart docs here in favor of [the official NEAR docs](https://docs.near.org/develop/testing/kurtosis-localnet)
 
 ### Fixes
 * Add the `config init` to our CI
