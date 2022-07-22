@@ -19,7 +19,7 @@ The URLs of the services started inside Kurtosis are as follows:
 
 Quickstart
 ----------
-Follow the instructions on [the NEAR docs](https://docs.near.org/docs/tools/kurtosis-localnet).
+Follow the instructions on [the NEAR docs](https://docs.near.org/develop/testing/kurtosis-localnet).
 
 For Kurtosis Devs: Upgrading Dependencies
 -----------------------------------------
