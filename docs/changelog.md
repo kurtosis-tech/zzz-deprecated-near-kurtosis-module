@@ -2,6 +2,9 @@
 ### Features
 * Added CircleCi `check_latest_version` workflow for running a scheduled pipeline every day to control successful module execution
 
+### Fixes
+* Fixes Near docs broken links
+
 # 0.5.24
 ### Changes
 * Migrate repo to use internal cli tool, `kudet`, for release workflow and getting docker image tags
