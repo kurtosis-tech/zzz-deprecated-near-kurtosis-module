@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.1
+  slack: circleci/slack@4.10.1
 
 executors:
   ubuntu_vm:
@@ -10,12 +11,39 @@ executors:
       # DO NOT USE THIS YET! This costs 200 credits *per job run* so is extremely expensive for the free plan, but we can turn it on one day if we get more credits
       # docker_layer_caching: true
 
+parameters:
+  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/near-kurtosis-module/triggers/96ec264a-4fae-44d1-b333-01e41f81340a?return-to=https%3A%2F%2Fapp.circleci.com%2Fprojects%2Fproject-dashboard%2Fgithub%2Fkurtosis-tech%2F&triggerSource=
+  should-enable-check-latest-version-workflow:
+    type: boolean
+    default: false
+  # To enable/disabled the check_latest_version workflow execution which will be triggered by the PR's checkers
+  should-enable-build-workflow:
+    type: boolean
+    default: true
+
 # NOTE: Because CircleCI jobs run on separate machines from each other, we duplicate steps (like checkout) between jobs. This is because doing the "correct" DRY
 #  refactoring of, "one job for checkout, one job for build Docker image, etc." would require a) persisting files between jobs and b) persisting Docker images between
 #  jobs. Both are annoying (saving/loading workspaces require re-downloading the workspace over the network, and there doesn't seem to be a good way to do Docker
 #  images), so we run everything inside a single job.
 # See also: https://discuss.circleci.com/t/can-docker-images-be-preserved-between-jobs-in-a-workflow-without-a-manual-load-save/23388/12
 jobs:
+  check_module_execution:
+    executor: ubuntu_vm
+    steps:
+      - run: |
+          echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
+          sudo apt update
+          sudo apt install kurtosis-cli
+          kurtosis config init dont-send-metrics
+          kurtosis cluster set docker
+          kurtosis engine start
+          kurtosis module exec 'kurtosistech/near-kurtosis-module:latest'
+      - slack/notify:
+          channel: engineering
+          event: fail
+          # You can preview this template and know more about templates here: https://github.com/CircleCI-Public/slack-orb/wiki#templates
+          template: basic_fail_1
+
   check_code:
     executor: ubuntu_vm
     steps:
@@ -73,7 +101,14 @@ jobs:
           docker push "${image_name_no_version}"
 
 workflows:
+  check_latest_version:
+    when: << pipeline.parameters.should-enable-check-latest-version-workflow >>
+    jobs:
+      - check_module_execution:
+          context:
+            - slack-secrets
   build:
+    when: << pipeline.parameters.should-enable-build-workflow >>
     jobs:
       # -- PR check jobs ------------------------------------------
       - kurtosis-docs-checker/check-docs:
