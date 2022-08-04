@@ -6,7 +6,7 @@
 * Fixes Near docs broken links
 
 ### Changes
-* Upgrade module-api-lib to 0.17.0
+* Upgrade module-api-lib to 0.18.0 and core to 1.57.0
 
 # 0.5.24
 ### Changes
