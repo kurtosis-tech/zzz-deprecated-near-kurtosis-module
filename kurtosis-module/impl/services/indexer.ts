@@ -26,7 +26,7 @@ const NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER = "/root/.near"
 
 const DATABASE_URL_ENVVAR = "DATABASE_URL";
 
-const VALIDATOR_KEY_FILEPATH: string = "/root/.near/localnet/validator_key.json";
+const VALIDATOR_KEY_FILEPATH: string = "/root/.near/validator_key.json";
 const GET_VALIDATOR_KEY_CMD: string[] = [
     "cat",
     VALIDATOR_KEY_FILEPATH
@@ -76,11 +76,7 @@ export async function addIndexer(
         `postgres://${dbUsername}:${dbUserPassword}@${dbPrivateUrl.ipAddress}:${dbPrivateUrl.portNumber}/${dbName}`
     )
 
-    const localnetConfigDirpath = path.join(
-        NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER,
-        path.basename(LOCALNET_CONFIG_DIRPATH_ON_MODULE),
-    )
-    const commandToRun = `./diesel migration run && ./indexer-explorer --home-dir "${localnetConfigDirpath}" run --store-genesis sync-from-latest`
+    const commandToRun = `./diesel migration run && ./indexer-explorer --home-dir "${NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER}" run --store-genesis sync-from-latest`
 
     const filesArtifactMounts = new Map<FilesArtifactUUID, string>();
     filesArtifactMounts.set(localnetConfigFilesArtifactUuid, NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER)
