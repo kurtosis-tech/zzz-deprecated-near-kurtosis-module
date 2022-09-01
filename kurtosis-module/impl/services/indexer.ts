@@ -26,7 +26,7 @@ const NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER = "/root/.near"
 
 const DATABASE_URL_ENVVAR = "DATABASE_URL";
 
-const VALIDATOR_KEY_FILEPATH: string = "/root/.near/localnet/validator_key.json";
+const VALIDATOR_KEY_FILEPATH: string = "/root/.near/validator_key.json";
 const GET_VALIDATOR_KEY_CMD: string[] = [
     "cat",
     VALIDATOR_KEY_FILEPATH
