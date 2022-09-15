@@ -7,8 +7,8 @@
     ],
     "dependencies": {
         "@types/tcp-port-used": "^1.0.1",
-        "kurtosis-core-api-lib": "1.58.1",
-        "kurtosis-module-api-lib": "0.21.1",
+        "kurtosis-core-api-lib": "1.59.0",
+        "kurtosis-module-api-lib": "0.22.0",
         "loglevel": "^1.7.1",
         "tcp-port-used": "^1.0.2"
     },
