@@ -113,18 +113,15 @@ export async function addExplorerBackendService(
         envVars.set(key, value);
     }
 
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
-        const result: ContainerConfig = new ContainerConfigBuilder(
-            IMAGE,
-        ).withEnvironmentVariableOverrides(
-            envVars
-        ).withUsedPorts(
-            usedPorts,
-        ).build();
-        return ok(result);
-    }
+    const containerConfig: ContainerConfig = new ContainerConfigBuilder(
+        IMAGE,
+    ).withEnvironmentVariableOverrides(
+        envVars
+    ).withUsedPorts(
+        usedPorts,
+    ).build();
     
-    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfig);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }

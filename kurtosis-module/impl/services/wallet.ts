@@ -1,4 +1,12 @@
-import { EnclaveContext, ServiceID, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
+import {
+    EnclaveContext,
+    ServiceID,
+    ContainerConfigBuilder,
+    ServiceContext,
+    PortSpec,
+    PortProtocol,
+    ContainerConfig
+} from "kurtosis-core-api-lib";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";
@@ -101,24 +109,21 @@ export async function addWallet(
 
     log.debug(`Wallet Parcel JS-updating command to run: ${singleCmdStringToRun}`)
 
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string) => {
-        const result = new ContainerConfigBuilder(
-            IMAGE,
-        ).withUsedPorts(
-            usedPorts
-        ).withPublicPorts(
-            publicPorts
-        ).withEntrypointOverride([
-            // If we don't override the entrypoint, it gets set to starting the NginX server that serves the Wallet assets
-            "sh", 
-            "-c",
-        ]).withCmdOverride([
-            singleCmdStringToRun,
-        ]).build();
-        return ok(result);
-    }
+    const containerConfig :ContainerConfig = new ContainerConfigBuilder(
+        IMAGE,
+    ).withUsedPorts(
+        usedPorts
+    ).withPublicPorts(
+        publicPorts
+    ).withEntrypointOverride([
+        // If we don't override the entrypoint, it gets set to starting the NginX server that serves the Wallet assets
+        "sh",
+        "-c",
+    ]).withCmdOverride([
+        singleCmdStringToRun,
+    ]).build();
     
-    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfig);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }

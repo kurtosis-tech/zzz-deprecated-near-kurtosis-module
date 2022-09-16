@@ -1,5 +1,9 @@
 # TBD
 
+### Changes
+* Upgraded module-api-lib to 0.22.0
+* Upgraded core to 1.59.0
+
 # 0.5.29
 
 # 0.5.28

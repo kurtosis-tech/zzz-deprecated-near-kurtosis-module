@@ -113,26 +113,23 @@ export async function addContractHelperService(
         envvars.set(key, value);
     }
 
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
-        const result: ContainerConfig = new ContainerConfigBuilder(
-            IMAGE,
-        ).withUsedPorts(
-            usedPorts
-        ).withPublicPorts(
-            publicPorts,
-        ).withCmdOverride([
-            "sh",
-            "-c",
-            // We need to override the CMD because the Dockerfile (https://github.com/near/near-contract-helper/blob/master/Dockerfile.app)
-            // loads hardcoded environment variables that we don't want
-            "sleep 10 && yarn start-no-env",
-        ]).withEnvironmentVariableOverrides(
-            envvars
-        ).build();
-        return ok(result);
-    }
+    const containerConfig: ContainerConfig = new ContainerConfigBuilder(
+        IMAGE,
+    ).withUsedPorts(
+        usedPorts
+    ).withPublicPorts(
+        publicPorts,
+    ).withCmdOverride([
+        "sh",
+        "-c",
+        // We need to override the CMD because the Dockerfile (https://github.com/near/near-contract-helper/blob/master/Dockerfile.app)
+        // loads hardcoded environment variables that we don't want
+        "sleep 10 && yarn start-no-env",
+    ]).withEnvironmentVariableOverrides(
+        envvars
+    ).build();
     
-    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfig);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
