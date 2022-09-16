@@ -1,6 +1,8 @@
 # TBD
+- Empty release to test Github branch protection
 
 # 0.5.29
+- Empty release to test Github branch protection
 
 # 0.5.28
 ### Changes
