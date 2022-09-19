@@ -90,20 +90,17 @@ export async function addExplorerFrontendService(
         ["NEAR_EXPLORER_CONFIG__BACKEND__SECURE", "false"],
     ]);
 
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
-        const result: ContainerConfig = new ContainerConfigBuilder(
-            IMAGE,
-        ).withUsedPorts(
-            usedPorts,
-        ).withPublicPorts(
-            publicPorts,
-        ).withEnvironmentVariableOverrides(
-                envVars
-        ).build();
-        return ok(result);
-    }
-    
-    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const containerConfig: ContainerConfig = new ContainerConfigBuilder(
+        IMAGE,
+    ).withUsedPorts(
+        usedPorts,
+    ).withPublicPorts(
+        publicPorts,
+    ).withEnvironmentVariableOverrides(
+            envVars
+    ).build();
+
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfig);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }

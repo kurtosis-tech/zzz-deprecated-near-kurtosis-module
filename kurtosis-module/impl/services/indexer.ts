@@ -81,27 +81,25 @@ export async function addIndexer(
     const filesArtifactMounts = new Map<FilesArtifactUUID, string>();
     filesArtifactMounts.set(localnetConfigFilesArtifactUuid, NEAR_CONFIGS_DIRPATH_ON_INDEXER_CONTAINER)
 
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
-        const result: ContainerConfig = new ContainerConfigBuilder(
-            IMAGE,
-        ).withEnvironmentVariableOverrides(
-            envvars
-        ).withEntrypointOverride([
-            "sh",
-            "-c",
-        ]).withCmdOverride([
-            commandToRun,
-        ]).withUsedPorts(
-            usedPorts
-        ).withPublicPorts(
-            publicPorts,
-        ).withFiles(
-            filesArtifactMounts,
-        ).build();
-        return ok(result);
-    }
+    const containerConfig: ContainerConfig = new ContainerConfigBuilder(
+        IMAGE,
+    ).withEnvironmentVariableOverrides(
+        envvars
+    ).withEntrypointOverride([
+        "sh",
+        "-c",
+    ]).withCmdOverride([
+        commandToRun,
+    ]).withUsedPorts(
+        usedPorts
+    ).withPublicPorts(
+        publicPorts,
+    ).withFiles(
+        filesArtifactMounts,
+    ).build();
+
     
-    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfig);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }

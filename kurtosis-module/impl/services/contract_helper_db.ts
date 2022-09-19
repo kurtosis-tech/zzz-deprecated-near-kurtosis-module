@@ -55,16 +55,14 @@ export async function addContractHelperDb(enclaveCtx: EnclaveContext): Promise<R
     log.info("Adding contract helper DB running on port '" + PORT_NUM + "'");
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PORT_SPEC);
-    const containerConfigSupplier: ContainerConfigSupplier = (ipAddr: string): Result<ContainerConfig, Error> => {
-        const result: ContainerConfig = new ContainerConfigBuilder(IMAGE).withUsedPorts(
-            usedPorts,
-        ).withEnvironmentVariableOverrides(
-            STATIC_ENVVARS
-        ).build();
-        return ok(result);
-    }
-    
-    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfigSupplier);
+    const containerConfig: ContainerConfig = new ContainerConfigBuilder(IMAGE).withUsedPorts(
+        usedPorts,
+    ).withEnvironmentVariableOverrides(
+        STATIC_ENVVARS
+    ).build();
+
+
+    const addServiceResult: Result<ServiceContext, Error> = await enclaveCtx.addService(SERVICE_ID, containerConfig);
     if (addServiceResult.isErr()) {
         return err(addServiceResult.error);
     }
