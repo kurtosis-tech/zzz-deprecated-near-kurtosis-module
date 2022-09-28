@@ -1,5 +1,7 @@
 # TBD
 
+# 0.5.31
+
 ### Changes
 * Upgrade to module-api-lib 0.23.0
 * Uses core from the new `kurtosis-sdk` over `kurtosis-sdk`
