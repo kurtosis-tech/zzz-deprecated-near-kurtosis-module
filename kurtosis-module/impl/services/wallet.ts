@@ -6,7 +6,7 @@ import {
     PortSpec,
     PortProtocol,
     ContainerConfig
-} from "kurtosis-core-api-lib";
+} from "kurtosis-sdk";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
 import { ContainerConfigSupplier } from "../near_module";

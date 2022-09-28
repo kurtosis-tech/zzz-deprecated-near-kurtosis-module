@@ -1,4 +1,4 @@
-import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext } from "kurtosis-core-api-lib";
+import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext } from "kurtosis-sdk";
 import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
