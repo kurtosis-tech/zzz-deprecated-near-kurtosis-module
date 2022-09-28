@@ -1,5 +1,5 @@
 import { Result, err, ok } from "neverthrow";
-import { ServiceContext } from "kurtosis-core-api-lib"
+import { ServiceContext } from "kurtosis-sdk"
 
 export class ServiceUrl {
     constructor(

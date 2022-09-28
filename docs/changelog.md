@@ -1,5 +1,9 @@
 # TBD
 
+### Changes
+* Upgrade to module-api-lib 0.23.0
+* Uses core from the new `kurtosis-sdk` over `kurtosis-sdk`
+
 # 0.5.30
 - Empty release to test Github branch protection
 
@@ -79,7 +83,7 @@
 
 ### Changes
 * Upgrade to module-api-lib 0.16.0 to support the latest version of Kurtosis
-* Upgrade to kurtosis-core-api-lib 1.54.1 which adds support for static ports
+* Upgrade to kurtosis-sdk 1.54.1 which adds support for static ports
 * The indexer now has a static validator private key:
 
   ```

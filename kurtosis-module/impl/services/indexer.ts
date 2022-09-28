@@ -1,4 +1,4 @@
-import { FilesArtifactUUID, EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-core-api-lib";
+import { FilesArtifactUUID, EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-sdk";
 import * as log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";

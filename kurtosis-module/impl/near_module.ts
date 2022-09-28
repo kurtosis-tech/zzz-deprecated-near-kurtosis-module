@@ -1,4 +1,4 @@
-import { EnclaveContext, ContainerConfig } from "kurtosis-core-api-lib";
+import { EnclaveContext, ContainerConfig } from "kurtosis-sdk";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
 import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
