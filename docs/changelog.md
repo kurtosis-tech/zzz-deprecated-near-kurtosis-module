@@ -1,5 +1,9 @@
 # TBD
 
+### Changes
+* Upgrade to module-api-lib 0.23.0
+* Uses core from the new `kurtosis-sdk` over `kurtosis-core-api-lib`
+
 # 0.5.30
 - Empty release to test Github branch protection
 
