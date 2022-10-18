@@ -9,12 +9,11 @@ import {
 } from "kurtosis-sdk";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { ContainerConfigSupplier } from "../near_module";
 import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "wallet";
-const IMAGE: string = "kurtosistech/near-wallet:1ae0bfe4";
+const IMAGE: string = "kurtosistech/near-wallet:169ccfb61";
 const PORT_ID = "http";
 const PORT_PROTOCOL = "http";
 const PRIVATE_PORT_NUM: number = 3004;
@@ -32,7 +31,6 @@ const CONTRACT_HELPER_JS_VAR: string = "ACCOUNT_HELPER_URL";
 const EXPLORER_URL_JS_VAR: string = "EXPLORER_URL";
 const NODE_URL_JS_VAR: string = "NODE_URL";
 const STATIC_JS_VARS: Map<string, string> = new Map(Object.entries({
-    "IS_MAINNET": "false",
     "NETWORK_ID": "localnet",
     // TODO make this dynamic, from the validator key that comes back from indexer node startup
     "ACCOUNT_ID_SUFFIX": "test.near",
@@ -179,7 +177,10 @@ function generateJsSrcUpdatingCommands(jsVars: Map<string, string>): Result<stri
         // Parcel envvars get set as a bunch of properties, like:
         // ....MOONPAY_API_URL:"SOMETHING",ACCOUNT_ID_SUFFIX:"SOMETHING ELSE"....
         // We therefore look for the property assignments and overwrite the value with our constant string instead
-        const updateJsFileCommand = `sed -i -E 's${JS_REPLACEMENT_SED_DELIMITER}([,{])${key}:"[^"]*"([,}])${JS_REPLACEMENT_SED_DELIMITER}\\1${key}:"${value}"\\2${JS_REPLACEMENT_SED_DELIMITER}g' ${WALLET_JS_FILE_GLOB}`
+        const srcRegexp = `([,{])${key}:[^,]*([,}])`
+        const replacementRegexp = `\\1${key}:"${value}"\\2`
+        log.debug(`Replacing variable '${key}' to '${value}' using regexp: '${srcRegexp}'`);
+        const updateJsFileCommand = `sed -i -E 's${JS_REPLACEMENT_SED_DELIMITER}${srcRegexp}${JS_REPLACEMENT_SED_DELIMITER}${replacementRegexp}${JS_REPLACEMENT_SED_DELIMITER}g' ${WALLET_JS_FILE_GLOB}`
         commandFragments.push(updateJsFileCommand);
     }
 

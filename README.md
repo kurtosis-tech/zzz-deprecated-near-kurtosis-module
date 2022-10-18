@@ -33,7 +33,7 @@ For Kurtosis Devs: Upgrading Dependencies
 1. Slot the produced image-and-tag into the `IMAGE` constant in the `indexer.ts` file
 
 ### Rebuild the contract helper service
-1. Clone [the NEAR contract-helper-service repository](https://github.com/kurtosis-tech/near-contract-helper)
+1. Clone [the NEAR contract-helper-service repository](https://github.com/near/near-contract-helper)
 1. Pull the latest `master` branch
 1. In the root of the repo, build a Docker image:
    ```

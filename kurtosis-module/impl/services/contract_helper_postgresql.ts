@@ -2,7 +2,6 @@ import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, Con
 import log from "loglevel";
 import { Result, ok, err } from "neverthrow";
 import { EXEC_COMMAND_SUCCESS_EXIT_CODE } from "../consts";
-import { ContainerConfigSupplier } from "../near_module";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
 const SERVICE_ID: ServiceID = "contract-helper-db";
@@ -52,7 +51,7 @@ export class ContractHelperDbInfo {
 
 export async function addContractHelperDb(enclaveCtx: EnclaveContext): Promise<Result<ContractHelperDbInfo, Error>> {
 
-    log.info("Adding contract helper DB running on port '" + PORT_NUM + "'");
+    log.info("Adding contract helper Posgresql DB running on port '" + PORT_NUM + "'");
     const usedPorts: Map<string, PortSpec> = new Map();
     usedPorts.set(PORT_ID, PORT_SPEC);
     const containerConfig: ContainerConfig = new ContainerConfigBuilder(IMAGE).withUsedPorts(

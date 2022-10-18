@@ -1,7 +1,6 @@
 import { EnclaveContext, PortSpec, PortProtocol, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext } from "kurtosis-sdk";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { ContainerConfigSupplier } from "../near_module";
 import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 
@@ -12,12 +11,14 @@ const PUBLIC_PORT_NUM: number = 8330;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
 const PUBLIC_PORT_SPEC = new PortSpec(PUBLIC_PORT_NUM, PortProtocol.TCP);
 const PORT_PROTOCOL = "http";
-const IMAGE: string = "kurtosistech/near-contract-helper:c0b1d4d";
+const IMAGE: string = "kurtosistech/near-contract-helper:88585e9";
 
 // Dynamic environment variables
 const ACCOUNT_CREATOR_KEY_ENVVAR: string = "ACCOUNT_CREATOR_KEY";
 const INDEXER_DB_CONNECTION_ENVVAR: string = "INDEXER_DB_CONNECTION";
 const NODE_RPC_URL_ENVVAR: string = "NODE_URL";
+const DYNAMO_DB_URL_ENVVAR: string = "LOCAL_DYNAMODB_HOST";
+const DYNAMO_DB_PORT_ENVVAR: string = "LOCAL_DYNAMODB_PORT";
 
 // See https://github.com/near/near-contract-helper/blob/master/.env.sample for where these are drawn from
 const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
@@ -54,6 +55,11 @@ const STATIC_ENVVARS: Map<string, string> = new Map(Object.entries({
     "ACCOUNT_CREATOR_KEYS":"",
 
     "NEARPAY_SECRET_KEY":"your_secret_key",
+
+    // Needed for local DynamoDB, dummy values are fine as local DynamoDB accepts everything
+    "AWS_REGION": "us-west-2",
+    "AWS_ACCESS_KEY_ID": "NOT_USED_BUT_NEEDED",
+    "AWS_SECRET_ACCESS_KEY": "NOT_USED_BUT_NEEDED",
 }));
 const VALIDATOR_KEY_PRETTY_PRINT_NUM_SPACES: number = 2;
 
@@ -73,6 +79,7 @@ export async function addContractHelperService(
     dbUsername: string,
     dbUserPassword: string,
     dbName: string,
+    dynamoDbPrivateUrl: ServiceUrl,
     nearNodePrivateRpcUrl: ServiceUrl,
     validatorKey: Object,
 ): Promise<Result<ContractHelperServiceInfo, Error>> {
@@ -109,6 +116,15 @@ export async function addContractHelperService(
         NODE_RPC_URL_ENVVAR,
         nearNodePrivateRpcUrl.toString(),
     )
+    envvars.set(
+        DYNAMO_DB_URL_ENVVAR,
+        dynamoDbPrivateUrl.ipAddress,
+    )
+    envvars.set(
+        DYNAMO_DB_PORT_ENVVAR,
+        dynamoDbPrivateUrl.portNumber.toString(),
+    )
+
     for (let [key, value] of STATIC_ENVVARS.entries()) {
         envvars.set(key, value);
     }
@@ -124,7 +140,7 @@ export async function addContractHelperService(
         "-c",
         // We need to override the CMD because the Dockerfile (https://github.com/near/near-contract-helper/blob/master/Dockerfile.app)
         // loads hardcoded environment variables that we don't want
-        "sleep 10 && yarn start-no-env",
+        "sleep 10 && node scripts/create-dynamodb-tables.js && yarn start-no-env",
     ]).withEnvironmentVariableOverrides(
         envvars
     ).build();
