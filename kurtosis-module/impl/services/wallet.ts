@@ -177,6 +177,8 @@ function generateJsSrcUpdatingCommands(jsVars: Map<string, string>): Result<stri
         // Parcel envvars get set as a bunch of properties, like:
         // ....MOONPAY_API_URL:"SOMETHING",ACCOUNT_ID_SUFFIX:"SOMETHING ELSE"....
         // We therefore look for the property assignments and overwrite the value with our constant string instead
+        // EDIT: Some envvars we override now get set with js functions, not constant, so we need the regexp to
+        // match JS function as well
         const srcRegexp = `([,{])${key}:[^,]*([,}])`
         const replacementRegexp = `\\1${key}:"${value}"\\2`
         log.debug(`Replacing variable '${key}' to '${value}' using regexp: '${srcRegexp}'`);

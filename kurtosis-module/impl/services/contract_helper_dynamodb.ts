@@ -6,7 +6,7 @@ import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 const SERVICE_ID: ServiceID = "contract-helper-dynamo-db";
 const IMAGE: string = "amazon/dynamodb-local:1.20.0";
 
-// This is from the aws image and cannot be changes apparently
+// The port number comes from the aws image and cannot be changes apparently
 const PORT_ID = "default"
 const DEFAULT_PORT_NUM = 8000
 const DEFAULT_PORT_PROTOCOL = "TCP"
