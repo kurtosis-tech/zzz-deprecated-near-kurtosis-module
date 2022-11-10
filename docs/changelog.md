@@ -1,5 +1,7 @@
 # TBD
 
+# 0.5.32
+
 ### Changes
 * Upgrade NEAR images and make the corresponding code changes
 * Add a DynamoDB container used by the contract-helper to store user data
