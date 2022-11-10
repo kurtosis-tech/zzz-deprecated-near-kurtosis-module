@@ -1,7 +1,8 @@
-import { EnclaveContext, ContainerConfig } from "kurtosis-sdk";
+import { EnclaveContext } from "kurtosis-sdk";
 import { Result, ok, err } from "neverthrow";
 import * as log from "loglevel";
-import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_db";
+import { addContractHelperDb, ContractHelperDbInfo } from "./services/contract_helper_postgresql";
+import { addContractHelperDynamoDb, ContractHelperDynamoDbInfo } from "./services/contract_helper_dynamodb";
 import { addContractHelperService, ContractHelperServiceInfo } from "./services/contract_helper";
 import { addIndexer, IndexerInfo } from "./services/indexer";
 import { addExplorerBackendService, ExplorerBackendInfo } from "./services/explorer_backend";
@@ -10,8 +11,6 @@ import { addWallet, WalletInfo } from "./services/wallet";
 import { ExecutableKurtosisModule } from "kurtosis-module-api-lib";
 import { deserializeAndValidateParams } from "./module_io/params_deserializer";
 import { ExecuteResult } from "./module_io/result";
-
-export type ContainerConfigSupplier = (ipAddr: string) => Result<ContainerConfig, Error>;
 
 const EXPLORER_WAMP_BACKEND_FRONTEND_SHARED_NETWORK_NAME: string = "localnet";
 
@@ -38,6 +37,12 @@ export class NearModule implements ExecutableKurtosisModule {
         }
         const contractHelperDbInfo: ContractHelperDbInfo = addContractHelperDbServiceResult.value;
 
+        const addContractHelperDynamoDbServiceResult: Result<ContractHelperDynamoDbInfo, Error> = await addContractHelperDynamoDb(enclaveCtx)
+        if (addContractHelperDynamoDbServiceResult.isErr()) {
+            return err(addContractHelperDynamoDbServiceResult.error);
+        }
+        const contractHelperDynamoDbInfo: ContractHelperDynamoDbInfo = addContractHelperDynamoDbServiceResult.value;
+
         const addIndexerResult: Result<IndexerInfo, Error> = await addIndexer(
             enclaveCtx,
             contractHelperDbInfo.privateUrl,
@@ -56,6 +61,7 @@ export class NearModule implements ExecutableKurtosisModule {
             contractHelperDbInfo.dbUsername,
             contractHelperDbInfo.dbUserPassword,
             contractHelperDbInfo.indexerDb,
+            contractHelperDynamoDbInfo.privateUrl,
             indexerInfo.privateRpcUrl,
             indexerInfo.validatorKey,
         );

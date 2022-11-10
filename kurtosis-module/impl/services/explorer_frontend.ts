@@ -1,7 +1,6 @@
 import { EnclaveContext, ServiceID, ContainerConfig, ContainerConfigBuilder, ServiceContext, PortSpec, PortProtocol } from "kurtosis-sdk";
 import log = require("loglevel");
 import { Result, ok, err } from "neverthrow";
-import { ContainerConfigSupplier } from "../near_module";
 import { waitForPortAvailability } from "../service_port_availability_checker";
 import { getPrivateAndPublicUrlsForPortId, ServiceUrl } from "../service_url";
 import { PUBLIC_PORT_NUM as WALLET_PUBLIC_PORT_NUM } from "./wallet";
@@ -9,7 +8,7 @@ import { PUBLIC_PORT_NUM as WALLET_PUBLIC_PORT_NUM } from "./wallet";
 const SERVICE_ID: ServiceID = "explorer-frontend";
 const PORT_ID = "http";
 const PORT_PROTOCOL = "http";
-const IMAGE: string = "kurtosistech/near-explorer_frontend:924c832";
+const IMAGE: string = "kurtosistech/near-explorer_frontend:836d8d7";
 const PRIVATE_PORT_NUM: number = 3000;
 const PUBLIC_PORT_NUM: number = 8331;
 const PRIVATE_PORT_SPEC = new PortSpec(PRIVATE_PORT_NUM, PortProtocol.TCP);
@@ -72,6 +71,9 @@ export async function addExplorerFrontendService(
     `
     const envVars: Map<string, string> = new Map([
         // TODO MAKE THIS MATCH BACKEND???
+
+        // from https://github.com/near/near-explorer/blob/b29f5830e431f3198ed409643d8930580806d1e4/frontend.env#L1
+        ["NEAR_EXPLORER_CONFIG__SEGMENT_WRITE_KEY", "7s4Na9mAfC7092R6pxrwpfBIAEek9Dne"],
         ["NEAR_EXPLORER_CONFIG__NETWORK_NAME", "localnet"],
         ["NEAR_EXPLORER_CONFIG__NETWORKS", networksConfigJson],
 
