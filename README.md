@@ -1,3 +1,7 @@
+# DEPRECATION NOTICE
+
+Deprecated in favor of https://github.com/kurtosis-tech/near-package
+
 NEAR Kurtosis Module
 =====================
 This repository contains [a Kurtosis module](https://docs.kurtosistech.com/modules.html) for setting up a NEAR network locally on your machine using Kurtosis. It is published to Dockerhub [here](https://hub.docker.com/repository/docker/kurtosistech/near-kurtosis-module).
